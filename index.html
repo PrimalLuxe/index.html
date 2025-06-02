@@ -1,130 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lua Dev Tips — Just Tips Bro</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap');
-
-  body {
-    margin: 0; padding: 0;
-    background: #121212;
-    color: #ddd;
-    font-family: 'Fira Mono', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    padding: 2rem;
-  }
-
-  header {
-    font-size: 3rem;
-    font-weight: 700;
-    color: #00cfff;
-    margin-bottom: 2rem;
-    text-shadow: 0 0 10px #00cfff88;
-  }
-
-  .container {
-    width: 100%;
-    max-width: 700px;
-  }
-
-  .tip {
-    background: #1f1f2f;
-    border-left: 6px solid #00cfff;
-    border-radius: 6px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 6px #0009;
-    opacity: 0;
-    transform: translateX(-40px);
-    animation: slideIn 0.5s forwards;
-  }
-
-  .tip:nth-child(even) {
-    border-color: #ff6f91;
-  }
-
-  .tip code {
-    background: #2e2e42;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-weight: 700;
-    color: #f07178;
-  }
-
-  @keyframes slideIn {
-    to {
-      opacity: 1;
-      transform: translateX(0);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Roblox Dev Tips</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #eee;
+      margin: 0;
+      padding: 0;
     }
-  }
-</style>
+
+    header {
+      background: #1f1f1f;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px #000;
+    }
+
+    header h1 {
+      color: #4ade80;
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #2a2a2a;
+      flex-wrap: wrap;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: #ccc;
+      padding: 15px 25px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    nav button:hover,
+    nav button.active {
+      background: #4ade80;
+      color: #000;
+    }
+
+    .tab {
+      display: none;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .tab.active {
+      display: block;
+    }
+
+    h2 {
+      color: #4ade80;
+      margin-top: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #333;
+      text-align: left;
+    }
+
+    img.tip-img {
+      max-width: 100%;
+      margin: 1rem 0;
+      border: 3px solid #333;
+    }
+
+    code, pre {
+      background: #2e2e2e;
+      padding: 0.3rem 0.6rem;
+      border-radius: 5px;
+      color: #7dd3fc;
+      font-size: 0.95rem;
+    }
+
+    ul {
+      line-height: 1.8em;
+    }
+
+    pre {
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
 </head>
 <body>
-<header>Lua Dev Tips — Just Tips Bro</header>
-<div class="container" id="tips-container">
-  <!-- Tips inserted here -->
-</div>
+  <header>
+    <h1>Roblox Dev Tips</h1>
+    <p>Useful code and tricks for serious Roblox developers</p>
+  </header>
 
-<script>
-  const tips = [
-    "Use <code>local</code> for variables to keep things fast and tidy:<br><code>local score = 0</code>",
-    "Simplify boolean checks:<br><code>if player.isAlive then ... end</code> (no need for <code>== true</code>)",
-    "Functions are first-class! Pass them around:<br><code>function greet() print('Hey!') end</code><br><code>doLater(greet)</code>",
-    "Use <code>pcall</code> to catch errors safely:<br><code>local ok, err = pcall(function() riskyCode() end)</code>",
-    "Use tables as dictionaries:<br><code>local player = {name = 'Bob', hp = 100}</code>",
-    "Loop over arrays with numeric <code>for</code>:<br><code>for i=1,#list do print(list[i]) end</code>",
-    "Loop over key-value pairs with <code>pairs()</code>:<br><code>for k,v in pairs(dict) do print(k,v) end</code>",
-    "Avoid polluting the global scope — use modules and locals.",
-    "Use <code>require</code> to organize code:<br><code>local utils = require('utils')</code>",
-    "Short functions are easier to test and reuse.",
-    "Write comments explaining *why* — the code itself says *what*.",
-    "Use string.format for cleaner output:<br><code>print(string.format('Score: %d', score))</code>",
-    "Use <code>table.insert(t, value)</code> instead of manual index counting.",
-    "Remember: Lua tables start at 1, not 0!",
-    "To check if a key exists:<br><code>if myTable[key] then ... end</code>",
-    "Nil removes keys from tables:<br><code>myTable[key] = nil</code>",
-    "Coroutines are powerful but use them carefully — they’re not threads.",
-    "Use <code>math.randomseed(os.time())</code> once to seed randomness.",
-    "Avoid deep nested ifs by returning early:<br><code>if not ready then return end</code>",
-    "Use <code>assert</code> to catch critical errors:<br><code>assert(value, 'Value must not be nil')</code>",
-    "Test small parts of your code first before combining.",
-    "Debug with <code>print()</code> — simple but effective.",
-    "Use Lua 5.3+ features if your environment supports it (bitwise ops, integers).",
-    "Avoid string concatenation in loops — use <code>table.concat</code>.",
-    "Learn to use Lua’s metatables for custom behavior.",
-    "Keep your code clean — don’t leave print-debugging in production.",
-    "Write reusable functions for repeated code patterns.",
-    "Use <code>next()</code> for safe table iteration when needed.",
-    "Use <code>pairs()</code> only when order doesn’t matter; use numeric for when it does.",
-    "Prefer <code>local function</code> over global function declarations.",
-    "Check the length of strings with <code>#str</code>.",
-    "Use <code>string.match</code> for pattern matching instead of regex.",
-    "Keep function arguments minimal — more clarity, less confusion.",
-    "Use <code>select()</code> to handle variable arguments.",
-    "Learn about Lua environments for sandboxing code.",
-    "Use <code>require</code> caching to improve performance.",
-    "Use <code>collectgarbage()</code> carefully if you notice memory issues.",
-    "Avoid hardcoding values — use constants or config tables.",
-    "Use consistent naming: camelCase or snake_case, your choice but be consistent.",
-    "Write meaningful error messages inside your <code>error()</code> calls.",
-    "Comment hacks or tricky parts — you’ll thank yourself later.",
-    "Keep learning — Lua’s simple syntax hides a lot of power."
-  ];
+  <nav>
+    <button class="tablink active" onclick="showTab('localscript')">LocalScript</button>
+    <button class="tablink" onclick="showTab('character')">Character</button>
+    <button class="tablink" onclick="showTab('camera')">Camera</button>
+    <button class="tablink" onclick="showTab('commands')">Commands</button>
+    <button class="tablink" onclick="showTab('remote')">RemoteEvents</button>
+    <button class="tablink" onclick="showTab('datastore')">Datastores</button>
+  </nav>
 
-  const container = document.getElementById('tips-container');
+  <div id="localscript" class="tab active">
+    <h2>LocalScript Tips</h2>
+    <table>
+      <tr><th>Tip</th><th>Code</th></tr>
+      <tr>
+        <td>Detect key press</td>
+        <td><code>game:GetService("UserInputService").InputBegan:Connect(function(input)</code></td>
+      </tr>
+      <tr>
+        <td>Get local player</td>
+        <td><code>local player = game.Players.LocalPlayer</code></td>
+      </tr>
+      <tr>
+        <td>Change GUI text</td>
+        <td><code>script.Parent.Text = "New Text"</code></td>
+      </tr>
+      <tr>
+        <td>Move camera to part</td>
+        <td><code>workspace.CurrentCamera.CameraSubject = part</code></td>
+      </tr>
+    </table>
+    <p>📌 LocalScripts only run on the client and can access <code>LocalPlayer</code>, UI, camera, and input.</p>
+    <img src="https://i.imgur.com/LyU3pJd.png" alt="LocalScript Example" class="tip-img"/>
+  </div>
+  <div id="character" class="tab">
+    <h2>Character Control</h2>
+    <ul>
+      <li><code>player.Character:MoveTo(Vector3.new(0, 10, 0))</code> – Move the character</li>
+      <li><code>player.Character.Humanoid.WalkSpeed = 32</code> – Change speed</li>
+      <li><code>player.Character.Humanoid.Jump = true</code> – Force jump</li>
+    </ul>
+    <pre><code>local player = game.Players.LocalPlayer
+player.Character:MoveTo(Vector3.new(0, 10, 0))</code></pre>
+    <img src="https://i.imgur.com/n1x4VfM.png" alt="Character Movement" class="tip-img"/>
+  </div>
 
-  tips.forEach((tip, i) => {
-    const div = document.createElement('div');
-    div.className = 'tip';
-    div.style.animationDelay = `${i * 0.12}s`;
-    div.innerHTML = tip;
-    container.appendChild(div);
-  });
-</script>
+  <div id="camera" class="tab">
+    <h2>Camera Tips</h2>
+    <ul>
+      <li><code>Camera.CameraType = Enum.CameraType.Scriptable</code> – Full camera control</li>
+      <li><code>Camera.CFrame = CFrame.new(position, lookAt)</code> – Move and aim camera</li>
+    </ul>
+    <pre><code>local cam = workspace.CurrentCamera
+cam.CameraType = Enum.CameraType.Scriptable
+cam.CFrame = CFrame.new(Vector3.new(0, 10, 0), Vector3.new(0, 0, 0))</code></pre>
+    <img src="https://i.imgur.com/ztkGNzH.png" alt="Camera Example" class="tip-img"/>
+  </div>
+
+  <div id="commands" class="tab">
+    <h2>Chat Commands</h2>
+    <ul>
+      <li><code>if msg == "!jump" then ...</code> – Handle custom commands</li>
+      <li>Use <code>Chatted</code> event on <code>LocalPlayer</code></li>
+    </ul>
+    <pre><code>local player = game.Players.LocalPlayer
+player.Chatted:Connect(function(msg)
+  if msg == "!jump" then
+    player.Character.Humanoid.Jump = true
+  end
+end)</code></pre>
+  </div>
+
+  <div id="remote" class="tab">
+    <h2>RemoteEvents</h2>
+    <table>
+      <tr><th>Task</th><th>Code</th></tr>
+      <tr>
+        <td>Fire to server</td>
+        <td><code>RemoteEvent:FireServer("Hi")</code></td>
+      </tr>
+      <tr>
+        <td>Receive on server</td>
+        <td><code>RemoteEvent.OnServerEvent:Connect(function(plr, msg)...)</code></td>
+      </tr>
+    </table>
+    <pre><code>-- Client
+game.ReplicatedStorage.MyEvent:FireServer("Boost")
+
+-- Server
+game.ReplicatedStorage.MyEvent.OnServerEvent:Connect(function(player, message)
+  print(player.Name .. " says " .. message)
+end)</code></pre>
+    <img src="https://i.imgur.com/6B6cRXg.png" alt="RemoteEvent" class="tip-img"/>
+  </div>
+
+  <div id="datastore" class="tab">
+    <h2>Datastores</h2>
+    <ul>
+      <li>Use on the server only</li>
+      <li>Save player coins, items, etc.</li>
+    </ul>
+    <pre><code>local ds = game:GetService("DataStoreService"):GetDataStore("Coins")
+
+game.Players.PlayerAdded:Connect(function(player)
+  local data = ds:GetAsync(player.UserId) or 0
+  print("Coins:", data)
+end)
+
+game.Players.PlayerRemoving:Connect(function(player)
+  ds:SetAsync(player.UserId, 100) -- Example save
+end)</code></pre>
+  </div>
+
+  <script>
+    function showTab(id) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tablink').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+  </script>
+
+  <footer style="text-align:center; padding: 2rem; background: #1f1f1f; color: #888;">
+    Built for Roblox developers 
+  </footer>
 </body>
 </html>
