@@ -124,7 +124,71 @@
   <div class="container" id="tips-container"></div>
 
   <script>
-    const tips = {/* (same tip categories as before) */};
+    const tips = {
+      general: [
+        "Use <code>local</code> for variables to keep things fast and tidy:<br><code>local score = 0</code>",
+        "Simplify boolean checks:<br><code>if player.isAlive then ... end</code>",
+        "Use <code>pcall</code> to catch errors:<br><code>local ok, err = pcall(function() risky() end)</code>",
+        "Loop arrays:<br><code>for i=1,#arr do print(arr[i]) end</code>",
+        "Use <code>require()</code> to manage modules cleanly.",
+        "Avoid globals; use modules and <code>local</code>.",
+        "Use <code>string.format()</code> for clean text output.",
+        "Use comments for why, not what.",
+        "Use <code>table.insert()</code> for cleaner lists.",
+        "Use <code>assert()</code> to stop bugs early.",
+        "Avoid deep nesting: <code>if not ready then return end</code>",
+        "Lua arrays start at 1, not 0.",
+        "Use <code>pairs()</code> for key-value loops.",
+        "Use <code>#table</code> to count elements.",
+        "Use <code>string.match()</code> instead of regex.",
+        "Use <code>select()</code> for varargs.",
+        "Learn <code>coroutines</code> carefully.",
+        "Avoid string concat in loops: use <code>table.concat()</code>",
+        "Consistent naming: <code>camelCase</code> or <code>snake_case</code>",
+        "Debug with <code>print()</code> or <code>warn()</code>"
+      ],
+      localscripts: [
+        "Run GUI logic in <code>LocalScripts</code> for faster results.",
+        "Use <code>PlayerGui</code> for interface changes.",
+        "Use <code>game.Players.LocalPlayer</code> to get the player.",
+        "Access mouse: <code>LocalPlayer:GetMouse()</code>",
+        "Avoid <code>wait()</code> in loops, use <code>RunService</code>.",
+        "Use <code>UserInputService</code> for keyboard/mouse detection.",
+        "LocalScripts can't access server-only stuff like <code>Workspace.Terrain</code>.",
+        "Use <code>ReplicatedStorage</code> to send data to server.",
+        "Use <code>BindableEvent</code> for UI-to-UI signaling.",
+        "Use <code>ContextActionService</code> to bind hotkeys."
+      ],
+      character: [
+        "Use <code>Humanoid.WalkSpeed</code> to control speed.",
+        "Use <code>Humanoid.JumpPower</code> to control jump height.",
+        "Detect death: <code>Humanoid.Died:Connect(function() ... end)</code>",
+        "Get character: <code>player.Character or player.CharacterAdded:Wait()</code>",
+        "Change appearance: insert parts into <code>Character</code>.",
+        "Use <code>Animator</code> to play animations.",
+        "Disable movement: <code>Humanoid.WalkSpeed = 0</code>",
+        "Reposition: <code>HumanoidRootPart.CFrame = CFrame.new(...)</code>"
+      ],
+      camera: [
+        "Get camera: <code>workspace.CurrentCamera</code>",
+        "Set to scriptable: <code>camera.CameraType = 'Scriptable'</code>",
+        "Follow object: <code>camera.CameraSubject = part</code>",
+        "Change FOV: <code>camera.FieldOfView = 70</code>",
+        "Use <code>TweenService</code> to smoothly move the camera.",
+        "Zoom in: <code>camera.CFrame = CFrame.new(...)</code>",
+        "Use <code>RenderStepped</code> to update each frame."
+      ],
+      remote: [
+        "Use <code>RemoteEvent</code> for server-client communication.",
+        "Place remotes in <code>ReplicatedStorage</code>.",
+        "Send data: <code>RemoteEvent:FireServer(data)</code>",
+        "Listen server: <code>RemoteEvent.OnServerEvent:Connect(...)</code>",
+        "Validate input on the server!",
+        "Use <code>RemoteFunction</code> for callbacks.",
+        "Use <code>pcall</code> for remote function safety.",
+        "Never trust the client for security."
+      ]
+    };
 
     const container = document.getElementById('tips-container');
 
