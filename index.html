@@ -1,236 +1,265 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lua Dev Tips — Just Tips Bro</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap');
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lua Dev Tips — Just Tips Bro</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap');
 
-    body {
-      margin: 0; padding: 0;
-      background: #121212;
-      color: #ddd;
-      font-family: 'Fira Mono', monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 2rem;
-    }
+  body {
+    margin: 0; padding: 0;
+    background: #121212;
+    color: #ddd;
+    font-family: 'Fira Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+  }
 
-    header {
-      font-size: 3rem;
-      font-weight: 700;
-      color: #00cfff;
-      margin-bottom: 2rem;
-      text-shadow: 0 0 10px #00cfff88;
-    }
+  header {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #00cfff;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px #00cfff88;
+  }
 
-    nav {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+  nav {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 
-    nav button {
-      background: #1f1f2f;
-      border: none;
-      padding: 0.5rem 1rem;
-      color: #ddd;
-      border-bottom: 2px solid transparent;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+  nav button {
+    background: #1f1f2f;
+    border: none;
+    padding: 0.5rem 1rem;
+    color: #ddd;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: 0.3s;
+  }
 
-    nav button.active {
-      border-bottom: 2px solid #00cfff;
-      color: #00cfff;
-    }
+  nav button.active {
+    border-bottom: 2px solid #00cfff;
+    color: #00cfff;
+  }
 
-    .container {
-      width: 100%;
-      max-width: 700px;
-    }
+  .container {
+    width: 100%;
+    max-width: 700px;
+  }
 
-    .tip {
-      background: #1f1f2f;
-      border-left: 6px solid #00cfff;
-      border-radius: 6px;
-      padding: 1rem 1.5rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 6px #0009;
-      opacity: 0;
-      transform: translateX(-40px);
-      animation: slideIn 0.5s forwards;
-    }
+  .tip {
+    background: #1f1f2f;
+    border-left: 6px solid #00cfff;
+    border-radius: 6px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 6px #0009;
+    opacity: 0;
+    transform: translateX(-40px);
+    animation: slideIn 0.5s forwards;
+  }
 
-    .tip:nth-child(even) {
-      border-color: #ff6f91;
-    }
+  .tip:nth-child(even) {
+    border-color: #ff6f91;
+  }
 
-    .tip code {
-      background: #2e2e42;
-      padding: 2px 5px;
-      border-radius: 3px;
-      font-weight: 700;
-      color: #f07178;
-    }
+  .tip code {
+    background: #2e2e42;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+    color: #f07178;
+  }
 
-    @keyframes slideIn {
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
+  @keyframes slideIn {
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
+  }
 
-    .tip-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
+  .tip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
 
-    .tip-arrow {
-      margin-left: 10px;
-      transition: transform 0.3s ease;
-    }
+  .tip-arrow {
+    transition: transform 0.3s ease;
+  }
 
-    .tip.open .tip-arrow {
-      transform: rotate(90deg);
-    }
+  .tip.open .tip-arrow {
+    transform: rotate(90deg);
+  }
 
-    .tip-code {
-      display: none;
-      margin-top: 0.5rem;
-    }
+  .tip-code {
+    display: none;
+    margin-top: 0.5rem;
+  }
 
-    .tip.open .tip-code {
-      display: block;
-    }
-  </style>
+  .tip.open .tip-code {
+    display: block;
+  }
+</style>
+
 </head>
 <body>
-  <header>Lua Dev Tips — Just Tips Bro</header>
-  <nav id="tabs">
-    <button class="active" onclick="switchTab('general')">General</button>
-    <button onclick="switchTab('localscripts')">LocalScript Tips</button>
-    <button onclick="switchTab('character')">Character Control</button>
-    <button onclick="switchTab('camera')">Camera</button>
-    <button onclick="switchTab('remote')">Remote Events</button>
-  </nav>
-  <div class="container" id="tips-container"></div>
+<header>Lua Dev Tips — Just Tips Bro</header>
+<nav id="tabs">
+  <button class="active" onclick="switchTab('general')">General</button>
+  <button onclick="switchTab('localscripts')">LocalScript Tips</button>
+  <button onclick="switchTab('character')">Character Control</button>
+  <button onclick="switchTab('camera')">Camera</button>
+  <button onclick="switchTab('remote')">Remote Events</button>
+</nav>
+<div class="container" id="tips-container">
+</div>
 
-  <script>
-    const tips = {
-      general: [
-        "Use <code>local</code> for variables to keep things fast and tidy:<br><code>local score = 0</code>",
-        "Simplify boolean checks:<br><code>if player.isAlive then ... end</code>",
-        "Use <code>pcall</code> to catch errors:<br><code>local ok, err = pcall(function() risky() end)</code>",
-        "Loop arrays:<br><code>for i=1,#arr do print(arr[i]) end</code>",
-        "Use <code>require()</code> to manage modules cleanly.",
-        "Avoid globals; use modules and <code>local</code>.",
-        "Use <code>string.format()</code> for clean text output.",
-        "Use comments for why, not what.",
-        "Use <code>table.insert()</code> for cleaner lists.",
-        "Use <code>assert()</code> to stop bugs early.",
-        "Avoid deep nesting: <code>if not ready then return end</code>",
-        "Lua arrays start at 1, not 0.",
-        "Use <code>pairs()</code> for key-value loops.",
-        "Use <code>#table</code> to count elements.",
-        "Use <code>string.match()</code> instead of regex.",
-        "Use <code>select()</code> for varargs.",
-        "Learn <code>coroutines</code> carefully.",
-        "Avoid string concat in loops: use <code>table.concat()</code>",
-        "Consistent naming: <code>camelCase</code> or <code>snake_case</code>",
-        "Debug with <code>print()</code> or <code>warn()</code>"
-      ],
-      localscripts: [
-        "Run GUI logic in <code>LocalScripts</code> for faster results.",
-        "Use <code>PlayerGui</code> for interface changes.",
-        "Use <code>game.Players.LocalPlayer</code> to get the player.",
-        "Access mouse: <code>LocalPlayer:GetMouse()</code>",
-        "Avoid <code>wait()</code> in loops, use <code>RunService</code>.",
-        "Use <code>UserInputService</code> for keyboard/mouse detection.",
-        "LocalScripts can't access server-only stuff like <code>Workspace.Terrain</code>.",
-        "Use <code>ReplicatedStorage</code> to send data to server.",
-        "Use <code>BindableEvent</code> for UI-to-UI signaling.",
-        "Use <code>ContextActionService</code> to bind hotkeys."
-      ],
-      character: [
-        "Use <code>Humanoid.WalkSpeed</code> to control speed.",
-        "Use <code>Humanoid.JumpPower</code> to control jump height.",
-        "Detect death: <code>Humanoid.Died:Connect(function() ... end)</code>",
-        "Get character: <code>player.Character or player.CharacterAdded:Wait()</code>",
-        "Change appearance: insert parts into <code>Character</code>.",
-        "Use <code>Animator</code> to play animations.",
-        "Disable movement: <code>Humanoid.WalkSpeed = 0</code>",
-        "Reposition: <code>HumanoidRootPart.CFrame = CFrame.new(...)</code>"
-      ],
-      camera: [
-        "Get camera: <code>workspace.CurrentCamera</code>",
-        "Set to scriptable: <code>camera.CameraType = 'Scriptable'</code>",
-        "Follow object: <code>camera.CameraSubject = part</code>",
-        "Change FOV: <code>camera.FieldOfView = 70</code>",
-        "Use <code>TweenService</code> to smoothly move the camera.",
-        "Zoom in: <code>camera.CFrame = CFrame.new(...)</code>",
-        "Use <code>RenderStepped</code> to update each frame."
-      ],
-      remote: [
-        "Use <code>RemoteEvent</code> for server-client communication.",
-        "Place remotes in <code>ReplicatedStorage</code>.",
-        "Send data: <code>RemoteEvent:FireServer(data)</code>",
-        "Listen server: <code>RemoteEvent.OnServerEvent:Connect(...)</code>",
-        "Validate input on the server!",
-        "Use <code>RemoteFunction</code> for callbacks.",
-        "Use <code>pcall</code> for remote function safety.",
-        "Never trust the client for security."
-      ]
-    };
+<script>
+  const tips = {
+    general: [
+      "Use <code>local</code> for variables to keep things fast and tidy:<br><code>local score = 0</code>",
+      "Simplify boolean checks:<br><code>if player.isAlive then ... end</code>",
+      "Use <code>pcall</code> to catch errors:<br><code>local ok, err = pcall(function() risky() end)</code>",
+      "Loop arrays:<br><code>for i=1,#arr do print(arr[i]) end</code>",
+      "Use <code>require()</code> to manage modules cleanly.",
+      "Avoid globals; use modules and <code>local</code>.",
+      "Use <code>string.format()</code> for clean text output.",
+      "Use comments for why, not what.",
+      "Use <code>table.insert()</code> for cleaner lists.",
+      "Use <code>assert()</code> to stop bugs early.",
+      "Avoid deep nesting: <code>if not ready then return end</code>",
+      "Lua arrays start at 1, not 0.",
+      "Use <code>pairs()</code> for key-value loops.",
+      "Use <code>#table</code> to count elements.",
+      "Use <code>string.match()</code> instead of regex.",
+      "Use <code>select()</code> for varargs.",
+      "Learn <code>coroutines</code> carefully.",
+      "Avoid string concat in loops: use <code>table.concat()</code>",
+      "Consistent naming: <code>camelCase</code> or <code>snake_case</code>",
+      "Debug with <code>print()</code> or <code>warn()</code>"
+    ],
+    localscripts: [
+      "Run GUI logic in <code>LocalScripts</code> for faster results.",
+      "Use <code>PlayerGui</code> for interface changes.",
+      "Use <code>game.Players.LocalPlayer</code> to get the player.",
+      "Access mouse: <code>LocalPlayer:GetMouse()</code>",
+      "Avoid <code>wait()</code> in loops, use <code>RunService</code>.",
+      "Use <code>UserInputService</code> for keyboard/mouse detection.",
+      "LocalScripts can't access server-only stuff like <code>Workspace.Terrain</code>.",
+      "Use <code>ReplicatedStorage</code> to send data to server.",
+      "Use <code>BindableEvent</code> for UI-to-UI signaling.",
+      "Use <code>ContextActionService</code> to bind hotkeys.",
+      "Change text: <code>TextLabel.Text = 'Hello!'</code>",
+      "Play local sounds: <code>Sound:Play()</code>",
+      "Don’t do datastores in localscripts!",
+      "Use <code>TweenService</code> for animations.",
+      "Use <code>StarterGui:SetCore()</code> for notifications.",
+      "Check input types: <code>if input.UserInputType == Enum.UserInputType.Keyboard</code>",
+      "Use <code>Humanoid.Jump</code> to detect jumps.",
+      "Use <code>Mouse.Move</code> for hover UI effects.",
+      "Keep LocalScripts small and focused.",
+      "Only use them where necessary — not in every object!"
+    ],
+    character: [
+      "Use <code>Humanoid.WalkSpeed</code> to control speed.",
+      "Use <code>Humanoid.JumpPower</code> to control jump height.",
+      "Detect death: <code>Humanoid.Died:Connect(function() ... end)</code>",
+      "Get character: <code>player.Character or player.CharacterAdded:Wait()</code>",
+      "Change appearance: insert parts into <code>Character</code>.",
+      "Make tools interact: place them in <code>StarterPack</code>.",
+      "Use <code>Animator</code> to play animations.",
+      "Detect land with <code>Humanoid.StateChanged</code>.",
+      "Disable movement: <code>Humanoid.WalkSpeed = 0</code>",
+      "Reposition with <code>HumanoidRootPart.CFrame = CFrame.new(...)</code>",
+      "Use <code>CharacterAppearanceLoaded</code> to wait before modifying.",
+      "Use <code>Humanoid:GetState()</code> for advanced control.",
+      "Cloning characters? Reset <code>Archivable</code> to true.",
+      "Teleport player: <code>HumanoidRootPart.Position = Vector3.new(x, y, z)</code>",
+      "Create ragdoll effects by disabling <code>Motor6Ds</code>.",
+      "Use <code>StarterCharacterScripts</code> for custom movement code.",
+      "Make invisible: <code>part.Transparency = 1</code> & <code>CanCollide = false</code>",
+      "Limit jump height server-side for security.",
+      "Use <code>CharacterAdded</code> event for custom spawn behavior.",
+      "Clean up parts on death for performance."
+    ],
+    camera: [
+      "Get camera: <code>workspace.CurrentCamera</code>",
+      "Set to scriptable: <code>camera.CameraType = 'Scriptable'</code>",
+      "Follow object: <code>camera.CameraSubject = part</code>",
+      "Change FOV: <code>camera.FieldOfView = 70</code>",
+      "Use <code>TweenService</code> to smoothly move the camera.",
+      "Zoom in: <code>camera.CFrame = CFrame.new(...)</code>",
+      "First-person: <code>Camera.CameraType = 'Custom'</code>",
+      "Use <code>RenderStepped</code> to update each frame.",
+      "Use <code>InputChanged</code> to control camera movement.",
+      "Camera shake: apply offsets randomly each frame.",
+      "Use <code>CameraOffset</code> on Humanoid for simple effects.",
+      "Change perspective: top-down, isometric, etc.",
+      "Lock to object: <code>Camera.CameraSubject = object</code>",
+      "Use <code>Camera.CFrame:Lerp()</code> to smooth move.",
+      "Add UI overlays via <code>PlayerGui</code>.",
+      "Use <code>RunService:BindToRenderStep()</code> for high-priority tracking.",
+      "Animate zoom with <code>TweenService</code>.",
+      "Combine camera and UI changes for cutscenes.",
+      "Don’t forget to reset <code>CameraType</code> when done!",
+      "Handle mobile and PC separately for smoother feel."
+    ],
+    remote: [
+      "Use <code>RemoteEvent</code> for server-client communication.",
+      "Place remotes in <code>ReplicatedStorage</code>.",
+      "Send data: <code>RemoteEvent:FireServer(data)</code>",
+      "Listen server: <code>RemoteEvent.OnServerEvent:Connect(...)</code>",
+      "Validate input on the server!",
+      "Use <code>RemoteFunction</code> for callbacks.",
+      "Use <code>pcall</code> for remote function safety.",
+      "Never trust the client for security.",
+      "Use events for button presses: <code>OnClientEvent</code>",
+      "Fire to specific player: <code>RemoteEvent:FireClient(player, data)</code>",
+      "Use <code>:FireAllClients()</code> for global updates.",
+      "Organize remotes in folders for clarity.",
+      "Use <code>BindableEvent</code> locally, not remotes.",
+      "Name your remotes clearly: <code>UpdateHealth</code>, <code>GiveItem</code>, etc.",
+      "Throttle remote usage to avoid lag.",
+      "Never send sensitive data to client.",
+      "Use <code>WaitForChild</code> to avoid nil errors.",
+      "Use <code>:InvokeClient()</code> carefully — clients may not respond.",
+      "Wrap logic in server handlers to avoid crashes.",
+      "Keep remote logic modular and short."
+    ]
+  };
 
-    const container = document.getElementById('tips-container');
+  const container = document.getElementById('tips-container');
 
-    function renderTips(tab) {
-      container.innerHTML = '';
-      tips[tab].forEach((tip, i) => {
-        const div = document.createElement('div');
-        div.className = 'tip';
-        div.style.animationDelay = `${i * 0.08}s`;
+  function renderTips(tab) {
+    container.innerHTML = '';
+    tips[tab].forEach((tip, i) => {
+      const div = document.createElement('div');
+      div.className = 'tip';
+      div.style.animationDelay = `${i * 0.08}s`;
+      div.innerHTML = tip;
+      container.appendChild(div);
+    });
+  }
 
-        if (tip.includes('<br><code>')) {
-          const [headerText, ...codeParts] = tip.split('<br>');
+  function switchTab(tab) {
+    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    renderTips(tab);
+  }
 
-          const header = document.createElement('div');
-          header.className = 'tip-header';
-          header.innerHTML = `<span>${headerText}</span><span class="tip-arrow">▸</span>`;
-
-          const codeBlock = document.createElement('div');
-          codeBlock.className = 'tip-code';
-          codeBlock.innerHTML = codeParts.join('<br>');
-
-          header.addEventListener('click', () => {
-            div.classList.toggle('open');
-          });
-
-          div.appendChild(header);
-          div.appendChild(codeBlock);
-        } else {
-          div.innerHTML = tip;
-        }
-
-        container.appendChild(div);
-      });
-    }
-
-    function switchTab(tab) {
-      document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      renderTips(tab);
-    }
-
-    renderTips('general');
-  </script>
+  // Initial render
+  renderTips('general');
+</script>
 </body>
 </html>
