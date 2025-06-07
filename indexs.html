@@ -1,1 +1,333 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roblox Script Snippet Manager</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #121212; color: #eee; display: flex; flex-direction: column; min-height: 100vh; }
+  header { background: #1e1e1e; padding: 1em; text-align: center; font-size: 1.5em; letter-spacing: 2px; }
+  #tabBar { display: flex; background: #222; overflow-x: auto; }
+  .tab { padding: 0.5em 1em; cursor: pointer; user-select: none; border-bottom: 3px solid transparent; transition: border-color 0.3s; white-space: nowrap; }
+  .tab.active { border-bottom-color: #1db954; color: #1db954; font-weight: bold; }
+  #addTabBtn { padding: 0.5em 1em; background: #1db954; color: black; font-weight: bold; border: none; cursor: pointer; }
+  #content { padding: 1em; max-width: 800px; margin: auto; flex-grow: 1; display: flex; flex-direction: column; }
+  textarea { width: 100%; height: 200px; background: #222; color: #eee; border: none; resize: vertical; padding: 10px; font-family: monospace; font-size: 1em; border-radius: 6px; }
+  input[type="text"] { padding: 6px 8px; border-radius: 6px; border: none; width: 200px; font-size: 1em; margin-right: 10px; }
+  button { background: #1db954; border: none; color: black; font-weight: bold; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: background-color 0.3s; }
+  button:hover { background: #17a444; }
+  #tagsContainer { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tagBox { background: #1db954; padding: 4px 10px; border-radius: 12px; font-weight: 600; letter-spacing: 0.5px; user-select: none; display: flex; align-items: center; }
+  .tagBox .removeTag { margin-left: 6px; cursor: pointer; font-weight: bold; }
+  #tagInput { width: 150px; }
+  #buttonsRow { margin-top: 10px; }
+  #snippetList { margin-top: 10px; background: #222; border-radius: 6px; max-height: 180px; overflow-y: auto; padding: 8px; }
+  .snippetItem { padding: 6px 10px; cursor: pointer; border-radius: 6px; user-select: none; }
+  .snippetItem:hover { background: #1db954; color: black; }
+  .snippetItem.active { background: #1db954; color: black; font-weight: bold; }
+  footer { background: #1e1e1e; padding: 0.5em; text-align: center; font-size: 0.85em; color: #888; margin-top: auto; }
+</style>
+</head>
+<body>
+
+<header>Roblox Script Snippet Manager - Reload to add a new snippit</header>
+
+<div id="tabBar">
+  <!-- tabs will be inserted here -->
+  <button id="addTabBtn">+ Add Tab</button>
+</div>
+
+<div id="content">
+  <input type="text" id="snippetTitle" placeholder="Snippet Title" />
+  <input type="text" id="tagInput" placeholder="Add tag (e.g. vfx)" />
+  <button id="addTagBtn">Add Tag</button>
+  <div id="tagsContainer"></div>
+  <textarea id="snippetContent" placeholder="Paste your Roblox Lua script here..."></textarea>
+  <div id="buttonsRow">
+    <button id="saveBtn">Save Snippet</button>
+    <button id="copyBtn">Copy Snippet</button>
+    <button id="deleteBtn">Delete Snippet</button>
+  </div>
+  <div id="snippetList"></div>
+</div>
+
+<footer>Made by <a href="https://www.roblox.com/users/4233358105/profile#!/about" target="_blank" rel="noopener noreferrer" style="color:#1db954; text-decoration:none;">Primalluxe</a></footer>
+
+<script>
+  const TAB_STORAGE_KEY = 'roblox_snippet_tabs';
+  let tabs = [];
+  let activeTabId = null;
+  let activeSnippetId = null;
+  const popularTags = ["VFX","LOCAL","SERVER","SCRIPT","ADMIN","DEV","TEST","UI","PLUGIN"];
+
+  function normalizeTag(input) {
+    const clean = input.toLowerCase().replace(/\s+/g, '');
+    for (const tag of popularTags) {
+      if (tag.toLowerCase() === clean) return tag;
+      const pattern = tag.toLowerCase().split('').join('.*');
+      if (new RegExp(pattern).test(clean)) return tag;
+    }
+    return input.charAt(0).toUpperCase() + input.slice(1);
+  }
+
+  function saveTabs() {
+    localStorage.setItem(TAB_STORAGE_KEY, JSON.stringify(tabs));
+  }
+
+  function loadTabs() {
+    const stored = localStorage.getItem(TAB_STORAGE_KEY);
+    if (stored) {
+      try {
+        tabs = JSON.parse(stored);
+      } catch {
+        tabs = [];
+      }
+    }
+  }
+
+  function genId() {
+    return Math.random().toString(36).slice(2, 10);
+  }
+
+  function renderTabs() {
+    const tabBar = document.getElementById('tabBar');
+    tabBar.querySelectorAll('.tab').forEach(el => el.remove());
+    for (const tab of tabs) {
+      const el = document.createElement('div');
+      el.className = 'tab';
+      if (tab.id === activeTabId) el.classList.add('active');
+      el.textContent = ''; 
+      const span = document.createElement('span');
+      span.textContent = tab.name || 'Untitled Tab';
+      el.appendChild(span);
+      const delBtn = document.createElement('span');
+      delBtn.textContent = ' ×';
+      delBtn.style.marginLeft = '6px';
+      delBtn.style.color = '#f55';
+      delBtn.style.cursor = 'pointer';
+      delBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (confirm('Delete this tab?')) {
+          tabs = tabs.filter(t => t.id !== tab.id);
+          if (activeTabId === tab.id) {
+            activeTabId = tabs.length ? tabs[0].id : null;
+            activeSnippetId = null;
+          }
+          saveTabs();
+          renderTabs();
+          renderSnippetList();
+          clearSnippetEditor();
+        }
+      };
+      el.appendChild(delBtn);
+      el.title = tab.name || 'Untitled Tab';
+      el.onclick = () => {
+        if (activeTabId !== tab.id) {
+          activeTabId = tab.id;
+          activeSnippetId = null;
+          renderTabs();
+          renderSnippetList();
+          clearSnippetEditor();
+        }
+      };
+      tabBar.insertBefore(el, document.getElementById('addTabBtn'));
+    }
+  }
+
+  // Render snippet list (titles clickable)
+  function renderSnippetList() {
+    const list = document.getElementById('snippetList');
+    list.innerHTML = '';
+    if (!activeTabId) return;
+    const tab = tabs.find(t => t.id === activeTabId);
+    if (!tab || !tab.snippets) return;
+    for (const snippet of tab.snippets) {
+      const item = document.createElement('div');
+      item.className = 'snippetItem' + (snippet.id === activeSnippetId ? ' active' : '');
+      item.textContent = snippet.title;
+      item.title = snippet.title + (snippet.tags && snippet.tags.length ? ' | Tags: ' + snippet.tags.join(', ') : '');
+      item.onclick = () => {
+        activeSnippetId = snippet.id;
+        loadSnippetToEditor(snippet.id);
+        renderSnippetList();
+      };
+      list.appendChild(item);
+    }
+  }
+
+  function loadSnippetToEditor(snippetId) {
+    if (!activeTabId) return;
+    const tab = tabs.find(t => t.id === activeTabId);
+    if (!tab) return;
+    const snippet = tab.snippets.find(s => s.id === snippetId);
+    if (!snippet) return;
+    activeSnippetId = snippet.id;
+    document.getElementById('snippetTitle').value = snippet.title;
+    document.getElementById('snippetContent').value = snippet.content;
+    renderTags(snippet.tags);
+  }
+
+  function clearSnippetEditor() {
+    activeSnippetId = null;
+    document.getElementById('snippetTitle').value = '';
+    document.getElementById('snippetContent').value = '';
+    renderTags([]);
+  }
+
+  function renderTags(tags) {
+    const container = document.getElementById('tagsContainer');
+    container.innerHTML = '';
+    if (!tags) return;
+    for (const tag of tags) {
+      const box = document.createElement('div');
+      box.className = 'tagBox';
+      box.textContent = tag;
+      const removeBtn = document.createElement('span');
+      removeBtn.className = 'removeTag';
+      removeBtn.textContent = '×';
+      removeBtn.title = 'Remove tag';
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        removeTag(tag);
+      };
+      box.appendChild(removeBtn);
+      container.appendChild(box);
+    }
+  }
+
+  function getCurrentTags() {
+    const container = document.getElementById('tagsContainer');
+    return Array.from(container.children).map(tagBox => tagBox.textContent.slice(0, -1));
+  }
+
+  function addTag(tagInput) {
+    const normalized = normalizeTag(tagInput.trim());
+    if (!normalized) return;
+    let tags = getCurrentTags();
+    if (!tags.includes(normalized)) {
+      tags.push(normalized);
+      renderTags(tags);
+    }
+    document.getElementById('tagInput').value = '';
+  }
+
+  function removeTag(tag) {
+    let tags = getCurrentTags();
+    tags = tags.filter(t => t !== tag);
+    renderTags(tags);
+  }
+
+  function saveSnippet() {
+    const title = document.getElementById('snippetTitle').value.trim() || 'Untitled Snippet';
+    const content = document.getElementById('snippetContent').value;
+    const tags = getCurrentTags();
+    if (!activeTabId) {
+      alert('Please add and select a tab first.');
+      return;
+    }
+    let tab = tabs.find(t => t.id === activeTabId);
+    if (!tab.snippets) tab.snippets = [];
+    if (activeSnippetId) {
+      const snippet = tab.snippets.find(s => s.id === activeSnippetId);
+      if (snippet) {
+        snippet.title = title;
+        snippet.content = content;
+        snippet.tags = tags;
+      }
+    } else {
+      const newSnippet = {
+        id: genId(),
+        title,
+        content,
+        tags
+      };
+      tab.snippets.push(newSnippet);
+      activeSnippetId = newSnippet.id;
+    }
+    saveTabs();
+    renderSnippetList();
+    alert('Snippet saved!');
+  }
+
+  function deleteSnippet() {
+    if (!activeTabId || !activeSnippetId) {
+      alert('No snippet selected to delete.');
+      return;
+    }
+    let tab = tabs.find(t => t.id === activeTabId);
+    if (!tab || !tab.snippets) return;
+    tab.snippets = tab.snippets.filter(s => s.id !== activeSnippetId);
+    activeSnippetId = null;
+    saveTabs();
+    renderSnippetList();
+    clearSnippetEditor();
+  }
+
+  function copySnippet() {
+    const content = document.getElementById('snippetContent').value;
+    if (!content) return alert('No snippet content to copy.');
+    navigator.clipboard.writeText(content).then(() => {
+      alert('Snippet copied to clipboard!');
+    }).catch(() => {
+      alert('Failed to copy snippet.');
+    });
+  }
+
+  function addTab() {
+    let tabName = prompt('Enter new tab name:', 'New Tab');
+    if (!tabName) return;
+    tabName = tabName.trim();
+    if (tabName.length === 0) return alert('Tab name cannot be empty.');
+    // Check for duplicate (case insensitive)
+    if (tabs.some(t => t.name.toLowerCase() === tabName.toLowerCase())) {
+      return alert('A tab with that name already exists.');
+    }
+    tabs.push({ id: genId(), name: tabName, snippets: [] });
+    activeTabId = tabs[tabs.length - 1].id;
+    activeSnippetId = null;
+    saveTabs();
+    renderTabs();
+    renderSnippetList();
+    clearSnippetEditor();
+  }
+
+  function init() {
+    loadTabs();
+    if (tabs.length === 0) {
+      tabs.push({ id: genId(), name: 'Default', snippets: [] });
+    }
+    activeTabId = tabs[0].id;
+    renderTabs();
+    renderSnippetList();
+    clearSnippetEditor();
+
+    document.getElementById('addTabBtn').onclick = addTab;
+    document.getElementById('addTagBtn').onclick = () => {
+      const tagInput = document.getElementById('tagInput').value;
+      if (tagInput.trim() !== '') {
+        addTag(tagInput);
+      }
+    };
+    document.getElementById('saveBtn').onclick = saveSnippet;
+    document.getElementById('deleteBtn').onclick = () => {
+      if (confirm('Are you sure you want to delete this snippet?')) deleteSnippet();
+    };
+    document.getElementById('copyBtn').onclick = copySnippet;
+
+    document.getElementById('tagInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const tagInput = document.getElementById('tagInput').value;
+        if (tagInput.trim() !== '') {
+          addTag(tagInput);
+        }
+      }
+    });
+  }
+
+  window.onload = init;
+</script>
+
+</body>
+</html>
