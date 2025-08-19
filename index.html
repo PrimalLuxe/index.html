@@ -1,315 +1,257 @@
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Compass,
+  Clipboard,
+  ClipboardCheck,
+  Link as LinkIcon,
+  Clock,
+} from "lucide-react";
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lua Dev Tips — Just Tips Bro</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap');
+const LINK_STYLE =
+  "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition backdrop-blur text-sm";
 
-  body {
-    margin: 0; padding: 0;
-    background: #121212;
-    color: #ddd;
-    font-family: 'Fira Mono', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    padding: 2rem;
-  }
+const CARD_STYLE =
+  "group relative rounded-3xl p-6 md:p-8 bg-gradient-to-b from-white/10 to-white/5 border border-white/15 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.6)] transition";
 
-  header {
-    font-size: 3rem;
-    font-weight: 700;
-    color: #00cfff;
-    margin-bottom: 2rem;
-    text-shadow: 0 0 10px #00cfff88;
-  }
+const BADGE_STYLE =
+  "px-3 py-1 rounded-full text-xs font-medium bg-white/10 border border-white/20 backdrop-blur";
 
-  nav {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+const GRADIENT_TEXT =
+  "bg-gradient-to-r from-purple-300 via-fuchsia-300 to-sky-300 bg-clip-text text-transparent";
 
-  nav button {
-    background: #1f1f2f;
-    border: none;
-    padding: 0.5rem 1rem;
-    color: #ddd;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    transition: 0.3s;
-  }
+const projects = [
+  {
+    title: "Anime Expeditions",
+    role: "QA Tester",
+    invite: "https://discord.gg/mgzV2Gmt5g",
+    icon: Compass,
+    summary: ["Upcoming Tower Defence Game"],
+    tag: "Upcoming",
+  },
+  {
+    title: "Dubai Roleplay",
+    role: "QA Tester",
+    invite: "https://discord.gg/VskVF8GGJf",
+    icon: Compass,
+    summary: ["Roleplay Testing"],
+    tag: "Roleplay",
+  },
+  {
+    title: "Elemental Duels",
+    role: "QA Tester",
+    invite: "https://discord.gg/bR9Q775yuY",
+    icon: Compass,
+    summary: ["PvP Duels"],
+    tag: "PvP",
+  },
+  {
+    title: "Dev Cove",
+    role: "QA Tester",
+    invite: "https://discord.gg/V4CXtSm3Jj",
+    icon: Compass,
+    summary: ["Development Server"],
+    tag: "Development",
+  },
+];
 
-  nav button.active {
-    border-bottom: 2px solid #00cfff;
-    color: #00cfff;
-  }
+const metrics = [
+  { k: "58", v: "Servers" },
+  { k: "200+", v: "Reports" },
+];
 
-  .container {
-    width: 100%;
-    max-width: 700px;
-  }
-
-  .tip {
-    background: #1f1f2f;
-    border-left: 6px solid #00cfff;
-    border-radius: 6px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 6px #0009;
-    opacity: 0;
-    transform: translateX(-40px);
-    animation: slideIn 0.5s forwards;
-  }
-
-  .tip:nth-child(even) {
-    border-color: #ff6f91;
-  }
-
-  .tip code {
-    background: #2e2e42;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-weight: 700;
-    color: #f07178;
-  }
-
-  @keyframes slideIn {
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .tip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-  }
-
-  .tip-arrow {
-    transition: transform 0.3s ease;
-  }
-
-  .tip.open .tip-arrow {
-    transform: rotate(90deg);
-  }
-
-  .tip-code {
-    display: none;
-    margin-top: 0.5rem;
-  }
-
-  .tip.open .tip-code {
-    display: block;
-  }
-</style>
-
-<script src="https://unpkg.com/fengari-web/dist/fengari-web.js"></script>
-</head>
-<body>
-<header>Lua Dev Tips — Just Tips Bro</header>
-<nav id="tabs">
-  <button class="active" onclick="switchTab('general')">General</button>
-  <button onclick="switchTab('localscripts')">LocalScript Tips</button>
-  <button onclick="switchTab('character')">Character Control</button>
-  <button onclick="switchTab('camera')">Camera</button>
-  <button onclick="switchTab('remote')">Remote Events</button>
-</nav>
-<div class="container" id="tips-container">
-</div>
-
-<script>
-  const tips = {
-    general: [
-      "Use <code>local</code> for variables to keep things fast and tidy:<br><code>local score = 0</code>",
-      "Simplify boolean checks:<br><code>if player.isAlive then ... end</code>",
-      "Use <code>pcall</code> to catch errors:<br><code>local ok, err = pcall(function() risky() end)</code>",
-      "Loop arrays:<br><code>for i=1,#arr do print(arr[i]) end</code>",
-      "Use <code>require()</code> to manage modules cleanly.",
-      "Avoid globals; use modules and <code>local</code>.",
-      "Use <code>string.format()</code> for clean text output.",
-      "Use comments for why, not what.",
-      "Use <code>table.insert()</code> for cleaner lists.",
-      "Use <code>assert()</code> to stop bugs early.",
-      "Avoid deep nesting: <code>if not ready then return end</code>",
-      "Lua arrays start at 1, not 0.",
-      "Use <code>pairs()</code> for key-value loops.",
-      "Use <code>#table</code> to count elements.",
-      "Use <code>string.match()</code> instead of regex.",
-      "Use <code>select()</code> for varargs.",
-      "Learn <code>coroutines</code> carefully.",
-      "Avoid string concat in loops: use <code>table.concat()</code>",
-      "Consistent naming: <code>camelCase</code> or <code>snake_case</code>",
-      "Debug with <code>print()</code> or <code>warn()</code>"
-    ],
-    localscripts: [
-      "Run GUI logic in <code>LocalScripts</code> for faster results.",
-      "Use <code>PlayerGui</code> for interface changes.",
-      "Use <code>game.Players.LocalPlayer</code> to get the player.",
-      "Access mouse: <code>LocalPlayer:GetMouse()</code>",
-      "Avoid <code>wait()</code> in loops, use <code>RunService</code>.",
-      "Use <code>UserInputService</code> for keyboard/mouse detection.",
-      "LocalScripts can't access server-only stuff like <code>Workspace.Terrain</code>.",
-      "Use <code>ReplicatedStorage</code> to send data to server.",
-      "Use <code>BindableEvent</code> for UI-to-UI signaling.",
-      "Use <code>ContextActionService</code> to bind hotkeys.",
-      "Change text: <code>TextLabel.Text = 'Hello!'</code>",
-      "Play local sounds: <code>Sound:Play()</code>",
-      "Don’t do datastores in localscripts!",
-      "Use <code>TweenService</code> for animations.",
-      "Use <code>StarterGui:SetCore()</code> for notifications.",
-      "Check input types: <code>if input.UserInputType == Enum.UserInputType.Keyboard</code>",
-      "Use <code>Humanoid.Jump</code> to detect jumps.",
-      "Use <code>Mouse.Move</code> for hover UI effects.",
-      "Keep LocalScripts small and focused.",
-      "Only use them where necessary — not in every object!"
-    ],
-    character: [
-      "Use <code>Humanoid.WalkSpeed</code> to control speed.",
-      "Use <code>Humanoid.JumpPower</code> to control jump height.",
-      "Detect death: <code>Humanoid.Died:Connect(function() ... end)</code>",
-      "Get character: <code>player.Character or player.CharacterAdded:Wait()</code>",
-      "Change appearance: insert parts into <code>Character</code>.",
-      "Make tools interact: place them in <code>StarterPack</code>.",
-      "Use <code>Animator</code> to play animations.",
-      "Detect land with <code>Humanoid.StateChanged</code>.",
-      "Disable movement: <code>Humanoid.WalkSpeed = 0</code>",
-      "Reposition with <code>HumanoidRootPart.CFrame = CFrame.new(...)</code>",
-      "Use <code>CharacterAppearanceLoaded</code> to wait before modifying.",
-      "Use <code>Humanoid:GetState()</code> for advanced control.",
-      "Cloning characters? Reset <code>Archivable</code> to true.",
-      "Teleport player: <code>HumanoidRootPart.Position = Vector3.new(x, y, z)</code>",
-      "Create ragdoll effects by disabling <code>Motor6Ds</code>.",
-      "Use <code>StarterCharacterScripts</code> for custom movement code.",
-      "Make invisible: <code>part.Transparency = 1</code> & <code>CanCollide = false</code>",
-      "Limit jump height server-side for security.",
-      "Use <code>CharacterAdded</code> event for custom spawn behavior.",
-      "Clean up parts on death for performance."
-    ],
-    camera: [
-      "Get camera: <code>workspace.CurrentCamera</code>",
-      "Set to scriptable: <code>camera.CameraType = 'Scriptable'</code>",
-      "Follow object: <code>camera.CameraSubject = part</code>",
-      "Change FOV: <code>camera.FieldOfView = 70</code>",
-      "Use <code>TweenService</code> to smoothly move the camera.",
-      "Zoom in: <code>camera.CFrame = CFrame.new(...)</code>",
-      "First-person: <code>Camera.CameraType = 'Custom'</code>",
-      "Use <code>RenderStepped</code> to update each frame.",
-      "Use <code>InputChanged</code> to control camera movement.",
-      "Camera shake: apply offsets randomly each frame.",
-      "Use <code>CameraOffset</code> on Humanoid for simple effects.",
-      "Change perspective: top-down, isometric, etc.",
-      "Lock to object: <code>Camera.CameraSubject = object</code>",
-      "Use <code>Camera.CFrame:Lerp()</code> to smooth move.",
-      "Add UI overlays via <code>PlayerGui</code>.",
-      "Use <code>RunService:BindToRenderStep()</code> for high-priority tracking.",
-      "Animate zoom with <code>TweenService</code>.",
-      "Combine camera and UI changes for cutscenes.",
-      "Don’t forget to reset <code>CameraType</code> when done!",
-      "Handle mobile and PC separately for smoother feel."
-    ],
-    remote: [
-      "Use <code>RemoteEvent</code> for server-client communication.",
-      "Place remotes in <code>ReplicatedStorage</code>.",
-      "Send data: <code>RemoteEvent:FireServer(data)</code>",
-      "Listen server: <code>RemoteEvent.OnServerEvent:Connect(...)</code>",
-      "Validate input on the server!",
-      "Use <code>RemoteFunction</code> for callbacks.",
-      "Use <code>pcall</code> for remote function safety.",
-      "Never trust the client for security.",
-      "Use events for button presses: <code>OnClientEvent</code>",
-      "Fire to specific player: <code>RemoteEvent:FireClient(player, data)</code>",
-      "Use <code>:FireAllClients()</code> for global updates.",
-      "Organize remotes in folders for clarity.",
-      "Use <code>BindableEvent</code> locally, not remotes.",
-      "Name your remotes clearly: <code>UpdateHealth</code>, <code>GiveItem</code>, etc.",
-      "Throttle remote usage to avoid lag.",
-      "Never send sensitive data to client.",
-      "Use <code>WaitForChild</code> to avoid nil errors.",
-      "Use <code>:InvokeClient()</code> carefully — clients may not respond.",
-      "Wrap logic in server handlers to avoid crashes.",
-      "Keep remote logic modular and short."
-    ]
+export default function Portfolio() {
+  const [copied, setCopied] = useState(false);
+  const copyId = () => {
+    navigator.clipboard.writeText("788767699256737824").then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    });
   };
 
-  const container = document.getElementById('tips-container');
+  return (
+    <main className="min-h-screen w-full text-white bg-[radial-gradient(1200px_600px_at_80%_-10%,rgba(120,64,255,0.25),transparent),radial-gradient(800px_400px_at_10%_10%,rgba(59,130,246,0.2),transparent),linear-gradient(180deg,#0b0c10_0%,#0b0c10_100%)]">
+      <DecorativeStars />
 
-  function renderTips(tab) {
-    container.innerHTML = '';
-    tips[tab].forEach((tip, i) => {
-      const div = document.createElement('div');
-      div.className = 'tip';
-      div.style.animationDelay = `${i * 0.08}s`;
-      div.innerHTML = tip;
-      container.appendChild(div);
-    });
-  }
+      <div className="mx-auto max-w-7xl px-4 md:px-8 pb-24">
+        <header className="pt-14 md:pt-24 grid md:grid-cols-[1.2fr_0.8fr] gap-10 items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-6"
+          >
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
+              <span className="block">Primalluxe</span>
+              <span className={`${GRADIENT_TEXT} block mt-2`}>
+                QA tester . moderator
+              </span>
+            </h1>
 
-  function switchTab(tab) {
-    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    renderTips(tab);
-  }
+            <p className="text-white/80 text-base md:text-lg max-w-2xl">
+              I break games so players can love them.
+            </p>
 
-  // Initial render
-  renderTips('general');
-</script>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button onClick={copyId} className={LINK_STYLE}>
+                {copied ? (
+                  <ClipboardCheck className="h-4 w-4" />
+                ) : (
+                  <Clipboard className="h-4 w-4" />
+                )}
+                Discord ID: 788767699256737824
+              </button>
+            </div>
+          </motion.div>
 
-<section id="lua-checker" style="width:100%; max-width:700px; margin-top:4rem; padding:2rem; background:#181828; border-radius:10px; box-shadow:0 0 15px #00cfff22; overflow: hidden; box-sizing: border-box;">
-  <h2 style="color:#00cfff;">Lua Script Checker</h2>
-  <textarea id="lua-input" style="width:100%; height:300px; background:#1f1f2f; color:#f07178; border:none; border-radius:8px; padding:1.5rem; font-size:1rem; font-family:'Fira Mono', monospace; box-shadow:0 0 10px #00cfff44;" placeholder="Paste Lua code here..."></textarea>
-  <button onclick="checkLua()">Check Script</button>
-  <pre id="lua-feedback" style="max-height:200px; overflow-y:auto; margin-top:1.5rem; border:1px solid #2e2e42;"></pre>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="relative"
+          >
+            <Card3D />
+          </motion.div>
+        </header>
 
-  <script>
-    function checkLua() {
-      const code = document.getElementById('lua-input').value;
-      const feedback = document.getElementById('lua-feedback');
-      feedback.textContent = "⏳ Checking...";
+        <section className="mt-16 md:mt-28">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold">Featured Work</h2>
+            <div className="flex gap-3">
+              {metrics.map((m, i) => (
+                <div key={i} className="text-right">
+                  <div className={`${GRADIENT_TEXT} text-xl md:text-2xl font-extrabold`}>
+                    {m.k}
+                  </div>
+                  <div className="text-xs md:text-sm text-white/70">{m.v}</div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      try {
-        fengari.load(code);  // This compiles the Lua code, throws on syntax errors
-        feedback.textContent = "✅ No syntax errors detected.";
-      } catch (e) {
-        feedback.textContent = "❌ Syntax Error:\n" + e.message;
-      }
-    }
-  </script>
-</section>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+            {projects.map((p, idx) => (
+              <motion.article
+                key={idx}
+                className={CARD_STYLE}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: idx * 0.05 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
+                      <p.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold">{p.title}</h3>
+                      <div className="text-xs text-white/70">{p.role}</div>
+                    </div>
+                  </div>
+                  <span className={BADGE_STYLE}>{p.tag}</span>
+                </div>
 
-<style>
-  #scrollToChecker {
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-    background: #00cfff;
-    color: #000;
-    font-size: 2rem;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    box-shadow: 0 0 10px #00cfff88;
-    cursor: pointer;
-    z-index: 999;
-    transition: transform 0.2s ease;
-  }
-  #scrollToChecker:hover {
-    transform: translateY(-4px);
-  }
-</style>
+                <ul className="space-y-2 text-sm text-white/85">
+                  {p.summary.map((s, i) => (
+                    <li key={i} className="flex gap-2 items-start">
+                      <div className="mt-1 h-1.5 w-1.5 rounded-full bg-white/60" />
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ul>
 
-<button id="scrollToChecker" onclick="document.getElementById('lua-checker').scrollIntoView({ behavior: 'smooth' });">
-  ↓
-</button>
-</body>
+                <div className="mt-5 flex items-center justify-between">
+                  <a
+                    className={LINK_STYLE}
+                    href={p.invite}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <LinkIcon className="h-4 w-4" /> Join Discord
+                  </a>
+                  <span className="text-xs text-white/60 flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" /> Live
+                  </span>
+                </div>
+              </motion.article>
+            ))}
+          </div>
+        </section>
 
-</html>
+        <section className="mt-20 md:mt-28 grid gap-8 items-start">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className={CARD_STYLE}
+          >
+            <h3 className="font-semibold text-lg mb-3">About Me</h3>
+            <div className="text-sm text-white/75">
+              I am Active, likable, good at communication and teamwork.
+            </div>
+          </motion.div>
+        </section>
+
+        <footer className="mt-24 md:mt-32 pb-8 text-center">
+          <div className="text-sm text-white/60">© {new Date().getFullYear()} Primalluxe — QA Tester & Moderator</div>
+        </footer>
+      </div>
+    </main>
+  );
+}
+
+function Card3D() {
+  return (
+    <motion.div
+      whileHover={{ rotateX: 6, rotateY: -6 }}
+      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+      className="relative h-[320px] md:h-[420px] rounded-3xl p-0.5 bg-gradient-to-br from-fuchsia-400/60 via-purple-400/50 to-blue-400/50 shadow-2xl"
+      style={{ perspective: 1000 }}
+    >
+      <div className="absolute inset-0 rounded-3xl bg-[radial-gradient(400px_200px_at_80%_0%,rgba(255,255,255,0.25),transparent),radial-gradient(400px_200px_at_0%_100%,rgba(147,51,234,0.25),transparent)]" />
+      <div className="relative h-full rounded-[22px] overflow-hidden bg-[#0f1117] border border-white/15">
+        <div className="absolute inset-0 opacity-20 mix-blend-screen bg-[conic-gradient(from_180deg_at_50%_50%,#6ee7ff_0deg,#b794f6_90deg,#93c5fd_180deg,#6ee7ff_360deg)]" />
+        <div className="relative z-10 h-full p-6 md:p-8 flex flex-col">
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-white/70">Snapshot</div>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-400/15 text-gray-300 border border-gray-300/30">
+              Offline
+            </span>
+          </div>
+
+          <div className="mt-6">
+            <div className="text-sm text-white/80">Discord</div>
+            <div className="mt-1 text-lg font-semibold">@Primalluxe</div>
+            <div className="text-xs text-white/60">ID: 788767699256737824</div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-3 text-center">
+            <MiniStat label="Servers" value="58" />
+            <MiniStat label="Reports" value="200+" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-white/5 border border-white/10 p-3">
+      <div className="text-xl font-extrabold">{value}</div>
+      <div className="text-[11px] text-white/70">{label}</div>
+    </div>
+  );
+}
+
+function DecorativeStars() {
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
+      <div className="absolute -top-24 -left-24 h-[480px] w-[480px] rounded-full bg-fuchsia-500/10 blur-3xl" />
+      <div className="absolute -bottom-24 -right-24 h-[520px] w-[520px] rounded-full bg-sky-500/10 blur-3xl" />
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: `radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.45) 50%, transparent 50%), radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.35) 50%, transparent 50%), radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,0.5) 50%, transparent 50%), radial-gradient(1px 1px at 35% 80%, rgba(255,255,255,0.4) 50%, transparent 50%)` }} />
+    </div>
+  );
+}
