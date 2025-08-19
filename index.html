@@ -1,121 +1,289 @@
-import React, { useState } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Primalluxe — QA Tester • Moderator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg:#0b0c10; --panel:#0f1623; --ink:#e5e7eb; --muted:#9ca3af;
+      --accent1:#6366f1; --accent2:#8b5cf6; --accent3:#06b6d4;
+    }
+    html,body{height:100%}
+    body{background:var(--bg);color:white;}
 
-// Ultra-dark, low-glow, no gradients. Simple + stable.
-const PAGE_BG = "min-h-screen w-full text-white bg-[#0b0c10]";
-const WRAP = "mx-auto max-w-6xl px-4 md:px-8 pb-20";
-const CARD = "rounded-2xl p-6 md:p-8 bg-white/5 border border-white/10";
-const LINK = "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition text-sm";
+    /* premium dark backdrop */
+    .backdrop { position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+    .grad-glow { position:absolute; inset:0; background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(99,102,241,.16), transparent),
+      radial-gradient(900px 450px at 10% 10%, rgba(56,189,248,.10), transparent),
+      radial-gradient(700px 350px at 50% 120%, rgba(139,92,246,.10), transparent);
+    }
+    /* animated subtle grid */
+    .grid-overlay::before{ content:""; position:absolute; inset:0; background:
+      linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px) 0 0/40px 40px; opacity:.05;
+      mask:radial-gradient(60% 60% at 50% 40%, #000 60%, transparent);
+      animation:grid-pan 30s linear infinite; }
+    @keyframes grid-pan { from{transform:translateY(0)} to{transform:translateY(-40px)} }
 
-export default function Portfolio(){
-  const [copied, setCopied] = useState(false);
-  const copyId = () => {
-    navigator.clipboard.writeText("788767699256737824").then(()=>{
-      setCopied(true); setTimeout(()=>setCopied(false),1000);
-    });
-  };
+    .gradient-text { background-image: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent3)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .card { background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); border-radius:1.25rem; transition:transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 24px 60px rgba(0,0,0,.55); }
 
-  const projects = [
-    { title:"Anime Expeditions", role:"QA Tester", invite:"https://discord.gg/mgzV2Gmt5g", tag:"Upcoming", bullets:["Upcoming Tower Defence Game."], icon:"▶" },
-    { title:"Dubai Roleplay", role:"QA Tester", invite:"https://discord.gg/VskVF8GGJf", tag:"Roleplay", bullets:["Roleplay Testing"], icon:"◇" },
-    { title:"Elemental Duels", role:"QA Tester", invite:"https://discord.gg/bR9Q775yuY", tag:"PvP", bullets:["PvP Duels"], icon:"⚔" },
-    { title:"Dev Cove", role:"QA Tester", invite:"https://discord.gg/V4CXtSm3Jj", tag:"Development", bullets:["Development Server for Dev Cove"], icon:"▦" },
-  ];
+    /* floating accent orbs */
+    .orb{position:absolute; filter:blur(30px); opacity:.14; mix-blend:screen; border-radius:50%}
+    .orb.o1{width:420px;height:420px;left:-120px;top:-120px;background:#22d3ee; animation: drift1 22s ease-in-out infinite;}
+    .orb.o2{width:520px;height:520px;right:-160px;bottom:-160px;background:#8b5cf6; animation: drift2 28s ease-in-out infinite;}
+    @keyframes drift1{0%{transform:translate(0,0)}50%{transform:translate(40px,30px)}100%{transform:translate(0,0)}}
+    @keyframes drift2{0%{transform:translate(0,0)}50%{transform:translate(-50px,-30px)}100%{transform:translate(0,0)}}
 
-  return (
-    <main className={PAGE_BG}>
-      <div className={WRAP}>
-        {/* Hero */}
-        <header className="pt-12 md:pt-20 grid md:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
-          <div className="space-y-5">
-            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-white">Primalluxe</h1>
-            <div className="text-lg md:text-xl text-white/90">QA tester . moderator</div>
-            <p className="text-white/80 max-w-2xl">I break games so players can love them.</p>
-            <div className="pt-1">
-              <button onClick={copyId} className={LINK}>
-                {copied ? "Copied" : "Discord ID: 788767699256737824"}
-              </button>
-            </div>
-          </div>
+    footer { background: var(--panel); border-top:1px solid rgba(255,255,255,.06); }
 
-          {/* Snapshot (super minimal) */}
-          <div className={CARD}>
-            <div className="text-sm text-white/70">Snapshot</div>
-            <div className="mt-4">
-              <div className="text-sm text-white/80">Discord</div>
-              <div className="mt-0.5 text-lg font-semibold">@Primalluxe</div>
-              <div className="text-xs text-white/60">ID: 788767699256737824</div>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-3 text-center">
-              <MiniStat label="Servers" value="58" />
-              <MiniStat label="Reports" value="200+" />
-            </div>
-          </div>
-        </header>
+    /* Interactive 3D canvas wrapper */
+    .stage{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.06); border-radius:1.5rem}
+    .hint{font-size:.75rem; color:var(--muted)}
 
-        {/* Featured work */}
-        <section className="mt-14">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-2xl md:text-3xl font-bold">Featured Work</h2>
-            <div className="flex gap-6 text-right">
-              <StatInline k="58" v="Servers" />
-              <StatInline k="200+" v="Reports" />
-            </div>
-          </div>
+    /* responsive size for the interactive stage */
+    #playground{ height: clamp(420px, 55vh, 700px); display:block; }
+  </style>
+</head>
+<body class="min-h-screen relative">
+  <div class="backdrop">
+    <canvas id="sky" class="absolute inset-0" style="display:block"></canvas>
+    <div class="grad-glow"></div>
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="grid-overlay absolute inset-0"></div>
+  </div>
 
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {projects.map((p, i)=> (
-              <article key={i} className={CARD}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white/80 text-sm">{p.icon}</div>
-                    <div>
-                      <h3 className="text-lg font-semibold">{p.title}</h3>
-                      <div className="text-xs text-white/70">{p.role}</div>
-                    </div>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full text-[11px] bg-white/5 border border-white/10">{p.tag}</span>
-                </div>
-                <ul className="space-y-2 text-sm text-white/85">
-                  {p.bullets.map((b,j)=> (
-                    <li key={j} className="flex gap-2 items-start"><span className="mt-1 block h-1.5 w-1.5 rounded-full bg-white/50"></span>{b}</li>
-                  ))}
-                </ul>
-                <div className="mt-4">
-                  <a className={LINK} href={p.invite} target="_blank" rel="noreferrer">Join Discord</a>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* About */}
-        <section className="mt-14">
-          <div className={CARD}>
-            <h3 className="font-semibold text-lg mb-2">About Me</h3>
-            <div className="text-sm text-white/75">I am Active, likable, good at communication and teamwork.</div>
-          </div>
-        </section>
-
-        <footer className="mt-16 pb-6 text-center text-sm text-white/60">© {new Date().getFullYear()} Primalluxe — QA Tester & Moderator</footer>
+  <main class="relative max-w-6xl mx-auto px-4 md:px-8 pb-20">
+    <header class="pt-14 md:pt-20 grid md:grid-cols-2 gap-10 items-center">
+      <div class="space-y-6">
+        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">
+          <span class="block">Primalluxe</span>
+          <span class="gradient-text block mt-2">QA Tester • Moderator</span>
+        </h1>
+        <p class="text-white/80 text-lg max-w-2xl">I break games so players can love them.</p>
+        <button id="copyBtn" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0f172a] hover:bg-[#111c33] border border-white/10 transition">Discord ID: 788767699256737824</button>
       </div>
-    </main>
-  );
-}
 
-function MiniStat({ label, value }: { label:string; value:string }){
-  return (
-    <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-      <div className="text-xl font-extrabold">{value}</div>
-      <div className="text-[11px] text-white/70">{label}</div>
-    </div>
-  );
-}
+      <div class="card p-6">
+        <div class="text-sm text-white/70 mb-2">Snapshot</div>
+        <div class="text-sm text-white/80">Discord</div>
+        <div class="text-lg font-semibold">@Primalluxe</div>
+        <div class="text-xs text-white/60 mb-4">ID: 788767699256737824</div>
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="rounded-xl bg-[#0f172a] p-3 border border-white/10">
+            <div class="text-xl font-extrabold">58</div>
+            <div class="text-xs text-white/70">Servers</div>
+          </div>
+          <div class="rounded-xl bg-[#0f172a] p-3 border border-white/10">
+            <div class="text-xl font-extrabold">200+</div>
+            <div class="text-xs text-white/70">Reports</div>
+          </div>
+        </div>
+      </div>
+    </header>
 
-function StatInline({k, v}:{k:string; v:string}){
-  return (
-    <div>
-      <div className="text-xl md:text-2xl font-extrabold text-white">{k}</div>
-      <div className="text-xs md:text-sm text-white/70">{v}</div>
-    </div>
-  );
-}
+    <section class="mt-16">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6">Featured Work</h2>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article class="card p-6">
+          <h3 class="text-lg font-semibold">Anime Expeditions</h3>
+          <p class="text-xs text-white/70 mb-2">QA Tester</p>
+          <ul class="text-sm text-white/80 mb-4"><li>Upcoming Tower Defence Game</li></ul>
+          <a href="https://discord.gg/mgzV2Gmt5g" target="_blank" class="inline-block px-3 py-1.5 bg-[#0f172a] border border-white/10 rounded-lg hover:bg-[#111c33] transition">Join Discord</a>
+        </article>
+        <article class="card p-6">
+          <h3 class="text-lg font-semibold">Dubai Roleplay</h3>
+          <p class="text-xs text-white/70 mb-2">QA Tester</p>
+          <ul class="text-sm text-white/80 mb-4"><li>Roleplay Testing</li></ul>
+          <a href="https://discord.gg/VskVF8GGJf" target="_blank" class="inline-block px-3 py-1.5 bg-[#0f172a] border border-white/10 rounded-lg hover:bg-[#111c33] transition">Join Discord</a>
+        </article>
+        <article class="card p-6">
+          <h3 class="text-lg font-semibold">Elemental Duels</h3>
+          <p class="text-xs text-white/70 mb-2">QA Tester</p>
+          <ul class="text-sm text-white/80 mb-4"><li>PvP Duels</li></ul>
+          <a href="https://discord.gg/bR9Q775yuY" target="_blank" class="inline-block px-3 py-1.5 bg-[#0f172a] border border-white/10 rounded-lg hover:bg-[#111c33] transition">Join Discord</a>
+        </article>
+        <article class="card p-6">
+          <h3 class="text-lg font-semibold">Dev Cove</h3>
+          <p class="text-xs text-white/70 mb-2">Moderator</p>
+          <ul class="text-sm text-white/80 mb-4"><li>Development Server</li></ul>
+          <a href="https://discord.gg/V4CXtSm3Jj" target="_blank" class="inline-block px-3 py-1.5 bg-[#0f172a] border border-white/10 rounded-lg hover:bg-[#111c33] transition">Join Discord</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="mt-16 grid md:grid-cols-1 gap-6">
+      <div class="stage p-0 overflow-hidden flex flex-col">
+        <canvas id="playground" class="w-full"></canvas>
+        <div class="px-4 py-3 text-right hint">Move your mouse / tap — cinematic 3D</div>
+      </div>
+    </section>
+
+    <section class="mt-16 grid md:grid-cols-2 gap-6">
+      <div class="card p-6">
+        <h3 class="font-semibold text-lg mb-2">About Me</h3>
+        <ul class="text-sm text-white/75 list-disc pl-5 space-y-1">
+          <li>Active, likable, good at communication and teamwork</li>
+          <li>Age: 15</li>
+          <li>Time zone: Central Daylight Time (CDT)</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="mt-16 text-center text-sm text-white/60 py-4">© <span id="year"></span> Primalluxe — QA Tester • Moderator</footer>
+  </main>
+
+  <script>
+    // ===== Util =====
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+    // Year & copy button
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('copyBtn').addEventListener('click', ()=>{
+      navigator.clipboard.writeText('788767699256737824');
+      const btn = document.getElementById('copyBtn');
+      const old = btn.textContent; btn.textContent = 'Copied!'; setTimeout(()=>btn.textContent=old, 900);
+    });
+
+    // ===== SHOOTING STARS SKY =====
+    (function(){
+      const sky = document.getElementById('sky');
+      const ctx = sky.getContext('2d');
+      let W=0,H=0; const stars=[], shooters=[]; const STAR_COUNT=260;
+      function resize(){ W=sky.width = Math.floor(innerWidth*DPR); H=sky.height=Math.floor(innerHeight*DPR); stars.length=0; for(let i=0;i<STAR_COUNT;i++){ stars.push({x:Math.random()*W, y:Math.random()*H, r:(Math.random()*1.2+0.2)*DPR, p:Math.random()*Math.PI*2, s:0.5+Math.random()*0.8}); } }
+      resize(); addEventListener('resize', resize);
+      function spawnShooter(){
+        const side = Math.random()<0.5 ? 'left':'top';
+        let x = side==='left' ? -50*DPR : Math.random()*W;
+        let y = side==='top' ? -50*DPR : Math.random()*H*0.3;
+        const speed = 6*DPR + Math.random()*4*DPR;
+        const ang = side==='left' ? (Math.PI/6 + Math.random()*Math.PI/12) : (Math.PI/3 + Math.random()*Math.PI/8);
+        shooters.push({x,y, vx:Math.cos(ang)*speed, vy:Math.sin(ang)*speed, life:0, max: 120+Math.random()*60});
+      }
+      let last=0; function loop(t){
+        const dt = (t-last)||16; last=t;
+        ctx.clearRect(0,0,W,H);
+        // stars
+        for(const st of stars){ st.p+=0.002*dt; const a=0.6+0.4*Math.sin(st.p*st.s); ctx.globalAlpha=a; ctx.fillStyle='#e5e7eb'; ctx.beginPath(); ctx.arc(st.x,st.y,st.r,0,Math.PI*2); ctx.fill(); }
+        ctx.globalAlpha=1;
+        // shooters
+        if(Math.random()<0.018) spawnShooter();
+        for(let i=shooters.length-1;i>=0;i--){ const s=shooters[i]; s.x+=s.vx; s.y+=s.vy; s.life++; if(s.life>s.max || s.x>W+80*DPR || s.y>H+80*DPR){ shooters.splice(i,1); continue; }
+          const tx = s.x - s.vx*2.4; const ty = s.y - s.vy*2.4;
+          const grad = ctx.createLinearGradient(s.x,s.y, tx,ty);
+          grad.addColorStop(0,'rgba(255,255,255,0.9)'); grad.addColorStop(1,'rgba(99,102,241,0.0)');
+          ctx.strokeStyle = grad; ctx.lineWidth = 2*DPR; ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(tx,ty); ctx.stroke();
+          ctx.fillStyle='rgba(255,255,255,0.95)'; ctx.beginPath(); ctx.arc(s.x,s.y,1.9*DPR,0,Math.PI*2); ctx.fill();
+        }
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+    })();
+
+    // ===== CINEMATIC 3D (auto + cursor reactive, no drag) =====
+    (function(){
+      const canvas = document.getElementById('playground');
+      const ctx = canvas.getContext('2d');
+      let W=0,H=0; function size(){ const r=canvas.getBoundingClientRect(); W=canvas.width=Math.floor(r.width*DPR); H=canvas.height=Math.floor(r.height*DPR);} size(); addEventListener('resize', size);
+
+      const U=56, V=32; // higher resolution for quality
+      let rotX=-0.15, rotY=1.0, t=0, auto=0.008; // auto orbit speed
+      let aimX=rotX, aimY=rotY; // cursor-influenced target
+      let pulse=0; // click/tap pulse effect
+      const light=[0.5,0.2,1.0]; { const ln=Math.hypot(...light); light[0]/=ln; light[1]/=ln; light[2]/=ln; }
+      const c1=[99,102,241], c2=[139,92,246], c3=[6,182,212];
+
+      function R(ax,ay){ const cx=Math.cos(ax),sx=Math.sin(ax),cy=Math.cos(ay),sy=Math.sin(ay); return [
+        cy, 0, sy,
+        sx*sy, cx, -sx*cy,
+        -cx*sy, sx, cx*cy
+      ]; }
+      const mul=(v,m)=>[ v[0]*m[0]+v[1]*m[3]+v[2]*m[6], v[0]*m[1]+v[1]*m[4]+v[2]*m[7], v[0]*m[2]+v[1]*m[5]+v[2]*m[8] ];
+      const project=p=>{ const dist=4, f=340; const z=p[2]+dist; const s=f/(z*1.12); return [p[0]*s, p[1]*s, z]; };
+      const lerp=(a,b,t)=>a+(b-a)*t;
+      function colorMix(a,b,t){ return [ lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t) ]; }
+
+      function draw(){
+        ctx.clearRect(0,0,W,H); ctx.save(); ctx.translate(W/2,H/2);
+        // vignette glow
+        const g = ctx.createRadialGradient(0,0,10, 0,0, Math.min(W,H)/1.25);
+        g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.3)'); ctx.fillStyle=g; ctx.fillRect(-W/2,-H/2,W,H);
+
+        rotX = lerp(rotX, aimX, 0.06); rotY = lerp(rotY, aimY, 0.06); rotY += auto; t += 0.016;
+        const rot = R(rotX,rotY);
+
+        const verts=[], norms=[], tris=[];
+        for(let i=0;i<=U;i++){
+          const u=i/U*2*Math.PI;
+          for(let j=0;j<=V;j++){
+            const v=j/V*Math.PI; // 0..PI
+            // base sphere
+            let x=Math.cos(u)*Math.sin(v), y=Math.cos(v), z=Math.sin(u)*Math.sin(v);
+            // animated displacement (blob + pulse)
+            const disp = 0.22*Math.sin(3*u + t*1.4) * Math.cos(2*v + t*1.0) + 0.08*Math.sin(pulse*2.5);
+            x*=(1+disp); y*=(1+disp); z*=(1+disp);
+            const n=[x,y,z];
+            const p = mul([x,y,z], rot);
+            const pr = project(p);
+            verts.push(pr);
+            const nr = mul(n, rot); const nl=Math.hypot(...nr); norms.push([nr[0]/nl,nr[1]/nl,nr[2]/nl]);
+          }
+        }
+        for(let i=0;i<U;i++){
+          for(let j=0;j<V;j++){
+            const a=i*(V+1)+j; const b=(i+1)*(V+1)+j; const c=a+1, d=b+1;
+            tris.push([a,b,d]); tris.push([a,d,c]);
+          }
+        }
+        tris.sort((A,B)=> (verts[B[0]][2]+verts[B[1]][2]+verts[B[2]][2]) - (verts[A[0]][2]+verts[A[1]][2]+verts[A[2]][2]));
+
+        for(const [a,b,c] of tris){
+          const va=verts[a], vb=verts[b], vc=verts[c];
+          const n=[ (norms[a][0]+norms[b][0]+norms[c][0])/3, (norms[a][1]+norms[b][1]+norms[c][1])/3, (norms[a][2]+norms[b][2]+norms[c][2])/3 ];
+          const nd = Math.max(0, n[0]*light[0]+n[1]*light[1]+n[2]*light[2]);
+          const view=[0,0,1]; const h=[ light[0]+view[0], light[1]+view[1], light[2]+view[2] ]; const hl=Math.hypot(...h); h[0]/=hl; h[1]/=hl; h[2]/=hl;
+          const spec = Math.pow(Math.max(0, n[0]*h[0]+n[1]*h[1]+n[2]*h[2]), 36);
+          const mixT = (n[0]*0.5+0.5); const col = colorMix(colorMix(c1,c2,mixT), c3, 0.25+0.35*nd);
+          const r = Math.min(255, Math.floor(col[0]*(0.35+0.65*nd) + spec*160));
+          const g2 = Math.min(255, Math.floor(col[1]*(0.35+0.65*nd) + spec*120));
+          const b2 = Math.min(255, Math.floor(col[2]*(0.35+0.65*nd) + spec*220));
+          ctx.fillStyle = `rgb(${r},${g2},${b2})`;
+          ctx.beginPath(); ctx.moveTo(va[0],va[1]); ctx.lineTo(vb[0],vb[1]); ctx.lineTo(vc[0],vc[1]); ctx.closePath(); ctx.fill();
+        }
+
+        // rim glow
+        ctx.globalCompositeOperation='lighter';
+        const rg = ctx.createRadialGradient(0,0, Math.min(W,H)/6, 0,0, Math.min(W,H)/2);
+        rg.addColorStop(0,'rgba(99,102,241,0.0)'); rg.addColorStop(1,'rgba(99,102,241,0.08)');
+        ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(0,0, Math.min(W,H)/2.15, 0, Math.PI*2); ctx.fill();
+        ctx.globalCompositeOperation='source-over';
+        ctx.restore();
+      }
+
+      function animate(){ pulse *= 0.96; draw(); requestAnimationFrame(animate); }
+      animate();
+
+      // Cursor / touch influence (no dragging)
+      addEventListener('mousemove', (e)=>{
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left)/rect.width - 0.5;
+        const y = (e.clientY - rect.top)/rect.height - 0.5;
+        aimY = 1.2 + x * 0.9; // yaw
+        aimX = -0.2 + y * 0.6; // pitch
+      });
+      addEventListener('touchmove', (e)=>{
+        const t=e.touches[0]; const rect=canvas.getBoundingClientRect();
+        const x=(t.clientX-rect.left)/rect.width - 0.5; const y=(t.clientY-rect.top)/rect.height - 0.5;
+        aimY = 1.2 + x*0.9; aimX = -0.2 + y*0.6;
+      }, {passive:true});
+      // Click/tap to pulse
+      addEventListener('click', (e)=>{ if(e.target!==canvas) return; pulse = 1; });
+    })();
+  </script>
+</body>
+</html>
