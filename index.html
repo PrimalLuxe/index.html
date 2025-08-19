@@ -1,214 +1,121 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Primalluxe — QA tester . moderator</title>
-  <meta name="description" content="Primalluxe QA tester . moderator — I break games so players can love them." />
-  <!-- Tailwind (CDN JIT) → works on GitHub Pages, no build needed -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* subtle star field */
-    .stars{background-image:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.45) 50%,transparent 50%),radial-gradient(1px 1px at 60% 70%,rgba(255,255,255,.35) 50%,transparent 50%),radial-gradient(1px 1px at 80% 20%,rgba(255,255,255,.5) 50%,transparent 50%),radial-gradient(1px 1px at 35% 80%,rgba(255,255,255,.4) 50%,transparent 50%)}
-    .glass{background:linear-gradient(to bottom,rgba(255,255,255,.12),rgba(255,255,255,.06));backdrop-filter:blur(8px)}
-    .gradient-text{background-image:linear-gradient(90deg,#e9d5ff,#f0abfc,#93c5fd);-webkit-background-clip:text;background-clip:text;color:transparent}
-  </style>
-</head>
-<body class="min-h-screen text-white bg-[radial-gradient(1200px_600px_at_80%_-10%,rgba(120,64,255,0.25),transparent),radial-gradient(800px_400px_at_10%_10%,rgba(59,130,246,0.2),transparent),#0b0c10]">
-  <!-- decor glows + stars -->
-  <div class="pointer-events-none fixed inset-0 overflow-hidden">
-    <div class="absolute -top-24 -left-24 h-[480px] w-[480px] rounded-full bg-fuchsia-500/10 blur-3xl"></div>
-    <div class="absolute -bottom-24 -right-24 h-[520px] w-[520px] rounded-full bg-sky-500/10 blur-3xl"></div>
-    <div class="absolute inset-0 opacity-30 stars"></div>
-  </div>
+import React, { useState } from "react";
 
-  <main class="relative mx-auto max-w-7xl px-4 md:px-8 pb-24">
-    <!-- HERO -->
-    <header class="pt-14 md:pt-24 grid md:grid-cols-[1.2fr_0.8fr] gap-10 items-center">
-      <div class="space-y-6">
-        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">
-          <span class="block">Primalluxe</span>
-          <span class="gradient-text block mt-2">QA tester . moderator</span>
-        </h1>
-        <p class="text-white/80 text-base md:text-lg max-w-2xl">I break games so players can love them.</p>
-        <div class="flex flex-wrap gap-3 pt-2">
-          <button id="copy" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition"> 
-            <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            <span>Discord ID: 788767699256737824</span>
-          </button>
-        </div>
-      </div>
+// Ultra-dark, low-glow, no gradients. Simple + stable.
+const PAGE_BG = "min-h-screen w-full text-white bg-[#0b0c10]";
+const WRAP = "mx-auto max-w-6xl px-4 md:px-8 pb-20";
+const CARD = "rounded-2xl p-6 md:p-8 bg-white/5 border border-white/10";
+const LINK = "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition text-sm";
 
-      <!-- Snapshot card (no online badge) -->
-      <div class="relative h-[320px] md:h-[420px] rounded-3xl p-0.5 bg-gradient-to-br from-fuchsia-400/60 via-purple-400/50 to-blue-400/50 shadow-2xl">
-        <div class="relative h-full rounded-[22px] overflow-hidden bg-[#0f1117] border border-white/15">
-          <div class="absolute inset-0 opacity-20 mix-blend-screen bg-[conic-gradient(from_180deg_at_50%_50%,#6ee7ff_0deg,#b794f6_90deg,#93c5fd_180deg,#6ee7ff_360deg)]"></div>
-          <div class="relative z-10 h-full p-6 md:p-8 flex flex-col">
-            <div class="text-xs text-white/70">Snapshot</div>
-            <div class="mt-6">
-              <div class="text-sm text-white/80">Discord</div>
-              <div class="mt-1 text-lg font-semibold">@Primalluxe</div>
-              <div class="text-xs text-white/60">ID: 788767699256737824</div>
-            </div>
-            <div class="mt-6 grid grid-cols-2 gap-3 text-center">
-              <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
-                <div class="text-xl font-extrabold">58</div>
-                <div class="text-[11px] text-white/70">Servers</div>
-              </div>
-              <div class="rounded-2xl bg-white/5 border border-white/10 p-3">
-                <div class="text-xl font-extrabold">200+</div>
-                <div class="text-[11px] text-white/70">Reports</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- FEATURED WORK -->
-    <section class="mt-16 md:mt-28">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl md:text-3xl font-bold">Featured Work</h2>
-        <div class="flex gap-6">
-          <div class="text-right">
-            <div class="gradient-text text-xl md:text-2xl font-extrabold">58</div>
-            <div class="text-xs md:text-sm text-white/70">Servers</div>
-          </div>
-          <div class="text-right">
-            <div class="gradient-text text-xl md:text-2xl font-extrabold">200+</div>
-            <div class="text-xs md:text-sm text-white/70">Reports</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-        <!-- Anime Expeditions -->
-        <article class="group relative rounded-3xl p-6 md:p-8 glass border border-white/15 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.6)] transition">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <div class="h-11 w-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold">Anime Expeditions</h3>
-                <div class="text-xs text-white/70">QA Tester</div>
-              </div>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-medium bg-white/10 border border-white/20">Upcoming</span>
-          </div>
-          <ul class="space-y-2 text-sm text-white/85">
-            <li class="flex gap-2 items-start"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-white/60 inline-block"></span>Upcoming Tower Defence Game.</li>
-          </ul>
-          <div class="mt-5 flex items-center justify-between">
-            <a class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition" href="https://discord.gg/mgzV2Gmt5g" target="_blank" rel="noreferrer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-              Join Discord
-            </a>
-            <span class="text-xs text-white/60 flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Live</span>
-          </div>
-        </article>
-
-        <!-- Dubai Roleplay -->
-        <article class="group relative rounded-3xl p-6 md:p-8 glass border border-white/15 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.6)] transition">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <div class="h-11 w-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15V6"></path><path d="M3 9l9-6 9 6-9 6-9-6z"></path><path d="M3 19l6-4"></path><path d="M15 15l6 4"></path></svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold">Dubai Roleplay</h3>
-                <div class="text-xs text-white/70">QA Tester</div>
-              </div>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-medium bg-white/10 border border-white/20">Roleplay</span>
-          </div>
-          <ul class="space-y-2 text-sm text-white/85">
-            <li class="flex gap-2 items-start"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-white/60 inline-block"></span>Roleplay Testing</li>
-          </ul>
-          <div class="mt-5 flex items-center justify-between">
-            <a class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition" href="https://discord.gg/VskVF8GGJf" target="_blank" rel="noreferrer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-              Join Discord
-            </a>
-            <span class="text-xs text-white/60 flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Live</span>
-          </div>
-        </article>
-
-        <!-- Elemental Duels -->
-        <article class="group relative rounded-3xl p-6 md:p-8 glass border border-white/15 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.6)] transition">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <div class="h-11 w-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.31 8l5.74 9.94"></path><path d="M9.69 8h11.48"></path><path d="M7.38 12l5.74-9.94"></path><path d="M9.69 16L3.95 6.06"></path><path d="M14.31 16H2.83"></path><path d="M16.62 12L10.88 22"></path></svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold">Elemental Duels</h3>
-                <div class="text-xs text-white/70">QA Tester</div>
-              </div>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-medium bg-white/10 border border-white/20">PvP</span>
-          </div>
-          <ul class="space-y-2 text-sm text-white/85">
-            <li class="flex gap-2 items-start"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-white/60 inline-block"></span>PvP Duels</li>
-          </ul>
-          <div class="mt-5 flex items-center justify-between">
-            <a class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition" href="https://discord.gg/bR9Q775yuY" target="_blank" rel="noreferrer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-              Join Discord
-            </a>
-            <span class="text-xs text-white/60 flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Live</span>
-          </div>
-        </article>
-
-        <!-- Dev Cove -->
-        <article class="group relative rounded-3xl p-6 md:p-8 glass border border-white/15 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.6)] transition">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <div class="h-11 w-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold">Dev Cove</h3>
-                <div class="text-xs text-white/70">QA Tester</div>
-              </div>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-medium bg-white/10 border border-white/20">Development</span>
-          </div>
-          <ul class="space-y-2 text-sm text-white/85">
-            <li class="flex gap-2 items-start"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-white/60 inline-block"></span>Development Server</li>
-          </ul>
-          <div class="mt-5 flex items-center justify-between">
-            <a class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition" href="https://discord.gg/V4CXtSm3Jj" target="_blank" rel="noreferrer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-              Join Discord
-            </a>
-            <span class="text-xs text-white/60 flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Live</span>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section class="mt-20 md:mt-28 grid gap-8 items-start">
-      <div class="rounded-3xl p-6 md:p-8 glass border border-white/15 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]">
-        <h3 class="font-semibold text-lg mb-3">About Me</h3>
-        <div class="text-sm text-white/75">I am Active, likable, good at communication and teamwork.</div>
-      </div>
-    </section>
-
-    <footer class="mt-24 md:mt-32 pb-8 text-center text-sm text-white/60">© <span id="year"></span> Primalluxe — QA Tester & Moderator</footer>
-  </main>
-
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-    const copyBtn = document.getElementById('copy');
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText('788767699256737824');
-      const icon = document.getElementById('copyIcon');
-      const old = icon.outerHTML;
-      icon.outerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-      setTimeout(() => { document.getElementById('copy').querySelector('svg').outerHTML = old; }, 1200);
+export default function Portfolio(){
+  const [copied, setCopied] = useState(false);
+  const copyId = () => {
+    navigator.clipboard.writeText("788767699256737824").then(()=>{
+      setCopied(true); setTimeout(()=>setCopied(false),1000);
     });
-  </script>
-</body>
-</html>
+  };
+
+  const projects = [
+    { title:"Anime Expeditions", role:"QA Tester", invite:"https://discord.gg/mgzV2Gmt5g", tag:"Upcoming", bullets:["Upcoming Tower Defence Game."], icon:"▶" },
+    { title:"Dubai Roleplay", role:"QA Tester", invite:"https://discord.gg/VskVF8GGJf", tag:"Roleplay", bullets:["Roleplay Testing"], icon:"◇" },
+    { title:"Elemental Duels", role:"QA Tester", invite:"https://discord.gg/bR9Q775yuY", tag:"PvP", bullets:["PvP Duels"], icon:"⚔" },
+    { title:"Dev Cove", role:"QA Tester", invite:"https://discord.gg/V4CXtSm3Jj", tag:"Development", bullets:["Development Server for Dev Cove"], icon:"▦" },
+  ];
+
+  return (
+    <main className={PAGE_BG}>
+      <div className={WRAP}>
+        {/* Hero */}
+        <header className="pt-12 md:pt-20 grid md:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
+          <div className="space-y-5">
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-white">Primalluxe</h1>
+            <div className="text-lg md:text-xl text-white/90">QA tester . moderator</div>
+            <p className="text-white/80 max-w-2xl">I break games so players can love them.</p>
+            <div className="pt-1">
+              <button onClick={copyId} className={LINK}>
+                {copied ? "Copied" : "Discord ID: 788767699256737824"}
+              </button>
+            </div>
+          </div>
+
+          {/* Snapshot (super minimal) */}
+          <div className={CARD}>
+            <div className="text-sm text-white/70">Snapshot</div>
+            <div className="mt-4">
+              <div className="text-sm text-white/80">Discord</div>
+              <div className="mt-0.5 text-lg font-semibold">@Primalluxe</div>
+              <div className="text-xs text-white/60">ID: 788767699256737824</div>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-3 text-center">
+              <MiniStat label="Servers" value="58" />
+              <MiniStat label="Reports" value="200+" />
+            </div>
+          </div>
+        </header>
+
+        {/* Featured work */}
+        <section className="mt-14">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-2xl md:text-3xl font-bold">Featured Work</h2>
+            <div className="flex gap-6 text-right">
+              <StatInline k="58" v="Servers" />
+              <StatInline k="200+" v="Reports" />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {projects.map((p, i)=> (
+              <article key={i} className={CARD}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-white/80 text-sm">{p.icon}</div>
+                    <div>
+                      <h3 className="text-lg font-semibold">{p.title}</h3>
+                      <div className="text-xs text-white/70">{p.role}</div>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-[11px] bg-white/5 border border-white/10">{p.tag}</span>
+                </div>
+                <ul className="space-y-2 text-sm text-white/85">
+                  {p.bullets.map((b,j)=> (
+                    <li key={j} className="flex gap-2 items-start"><span className="mt-1 block h-1.5 w-1.5 rounded-full bg-white/50"></span>{b}</li>
+                  ))}
+                </ul>
+                <div className="mt-4">
+                  <a className={LINK} href={p.invite} target="_blank" rel="noreferrer">Join Discord</a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* About */}
+        <section className="mt-14">
+          <div className={CARD}>
+            <h3 className="font-semibold text-lg mb-2">About Me</h3>
+            <div className="text-sm text-white/75">I am Active, likable, good at communication and teamwork.</div>
+          </div>
+        </section>
+
+        <footer className="mt-16 pb-6 text-center text-sm text-white/60">© {new Date().getFullYear()} Primalluxe — QA Tester & Moderator</footer>
+      </div>
+    </main>
+  );
+}
+
+function MiniStat({ label, value }: { label:string; value:string }){
+  return (
+    <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+      <div className="text-xl font-extrabold">{value}</div>
+      <div className="text-[11px] text-white/70">{label}</div>
+    </div>
+  );
+}
+
+function StatInline({k, v}:{k:string; v:string}){
+  return (
+    <div>
+      <div className="text-xl md:text-2xl font-extrabold text-white">{k}</div>
+      <div className="text-xs md:text-sm text-white/70">{v}</div>
+    </div>
+  );
+}
