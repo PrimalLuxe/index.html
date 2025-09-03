@@ -42,6 +42,7 @@ body {
 .message .meta { font-size: .75rem; opacity: .6; }
 .message.pinned { border-left:4px solid var(--accent); padding-left:4px; }
 .reactions span { margin-right:4px; background:rgba(0,0,0,0.3); border-radius:4px; padding:0 4px; font-size:.8rem; }
+.typing { font-size:.75rem; opacity:.6; padding:0 .5rem .25rem; min-height:1rem; }
 .composer { display: flex; padding: .5rem; gap:.5rem; border-top:1px solid rgba(0,0,0,0.2); }
 .composer input[type="text"] { flex:1; padding:.5rem; border:none; border-radius:4px; }
 .composer button { background: var(--accent); color:white; border:none; padding:0 1rem; border-radius:4px; }
@@ -53,3 +54,6 @@ button { cursor:pointer; }
 #channelList li { padding:.5rem; cursor:pointer; }
 #channelList li.active { background:rgba(255,255,255,0.1); }
 #users { overflow-y:auto; }
+#userList { list-style:none; padding:0; margin:0; }
+#userList li { padding:.5rem; }
+.drop-hover { outline:2px dashed var(--accent); }

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>GuestCord</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
   <script defer src="script.js"></script>
 </head>
@@ -20,6 +21,7 @@
     <main id="chat" class="panel chat">
       <header id="channelTitle" class="chat-header"></header>
       <div id="messages" class="messages"></div>
+      <div id="typingIndicator" class="typing"></div>
       <form id="composer" class="composer">
         <input type="text" id="messageInput" placeholder="Message" autocomplete="off"/>
         <input type="file" id="fileInput" hidden/>
@@ -27,11 +29,15 @@
         <button type="submit">Send</button>
       </form>
     </main>
-    <aside id="users" class="panel users"></aside>
+    <aside id="users" class="panel users">
+      <ul id="userList"></ul>
+    </aside>
   </div>
   <div id="toolbar">
     <input id="searchBar" placeholder="Search"/>
-    <button id="themeToggle">Toggle Theme</button>
+    <button id="themeToggle" title="Toggle light/dark">Theme</button>
+    <input type="color" id="accentPicker" title="Accent color"/>
+    <button id="nickBtn" title="Change nickname">Nick</button>
     <button id="exportBtn">Export</button>
     <input type="file" id="importInput" accept="application/json" hidden/>
     <button id="importBtn">Import</button>

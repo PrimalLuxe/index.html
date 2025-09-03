@@ -1,5 +1,6 @@
 const storageKey = 'gc_data';
 let data = JSON.parse(localStorage.getItem(storageKey) || '{}');
+let typingTimer=null;
 
 function save(){
   localStorage.setItem(storageKey, JSON.stringify(data));
@@ -15,12 +16,19 @@ function ensureDefaults(){
   data.activeServer = data.activeServer || 'home';
   data.activeChannel = data.activeChannel || 'general';
   data.theme = data.theme || 'dark';
+  data.accent = data.accent || '#5865f2';
+  data.nickname = data.nickname || data.userId;
+  data.messageCount = data.messageCount || 0;
+  data.achievements = data.achievements || {};
 }
 function render(){
   document.body.dataset.theme = data.theme === 'light' ? 'light' : '';
+  document.documentElement.style.setProperty('--accent', data.accent);
   renderServers();
   renderChannels();
   renderMessages();
+  renderUsers();
+  document.getElementById('accentPicker').value = data.accent;
 }
 function renderServers(){
   const cont=document.getElementById('servers');
@@ -99,10 +107,19 @@ function renderMessages(){
   });
   container.scrollTop = container.scrollHeight;
 }
+
+function renderUsers(){
+  const list=document.getElementById('userList');
+  list.innerHTML='';
+  const li=document.createElement('li');
+  li.textContent=data.nickname;
+  list.appendChild(li);
+}
 function sendSystem(content){
   const msg={id:Date.now(),author:'System',content,ts:Date.now()};
   data.servers[data.activeServer].channels[data.activeChannel].messages.push(msg);
   save(); renderMessages();
+  notify(msg);
 }
 let typeraceWord=null;
 function handleCommand(text){
@@ -118,9 +135,29 @@ function randomWord(){
 }
 function sendMessage(text, file){
   if(handleCommand(text)) return;
-  const msg={id:Date.now(), author:data.userId, content:text, ts:Date.now(), file:file||null};
+  const msg={id:Date.now(), author:data.nickname, content:text, ts:Date.now(), file:file||null};
   data.servers[data.activeServer].channels[data.activeChannel].messages.push(msg);
-  save(); renderMessages();
+  data.messageCount++;
+  save();
+  renderMessages();
+  checkAchievements();
+  notify(msg);
+}
+
+function checkAchievements(){
+  const milestones=[10,50,100];
+  milestones.forEach(m=>{
+    if(data.messageCount===m && !data.achievements[m]){
+      data.achievements[m]=true;
+      sendSystem(`Achievement unlocked: ${m} messages!`);
+    }
+  });
+}
+
+function notify(msg){
+  if(Notification.permission==='granted' && document.hidden){
+    new Notification(`${msg.author}`, {body:msg.content});
+  }
 }
 let fileData=null;
 const composer=document.getElementById('composer');
@@ -131,6 +168,12 @@ composer.addEventListener('submit',e=>{
   if(!text && !fileData) return;
   sendMessage(text,fileData);
   input.value=''; fileData=null; document.getElementById('fileInput').value='';
+});
+document.getElementById('messageInput').addEventListener('input',()=>{
+  const el=document.getElementById('typingIndicator');
+  el.textContent=`${data.nickname} is typing...`;
+  clearTimeout(typingTimer);
+  typingTimer=setTimeout(()=>{el.textContent='';},1000);
 });
 document.getElementById('uploadBtn').addEventListener('click',()=>document.getElementById('fileInput').click());
 document.getElementById('fileInput').addEventListener('change',e=>{
@@ -183,9 +226,34 @@ document.getElementById('searchBar').addEventListener('input',e=>{
     }
   }
 });
+document.getElementById('accentPicker').addEventListener('change',e=>{
+  data.accent=e.target.value; save(); render();
+});
+document.getElementById('nickBtn').addEventListener('click',()=>{
+  const n=prompt('Enter nickname', data.nickname);
+  if(n){ data.nickname=n; save(); renderUsers(); }
+});
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey && e.key==='k'){ e.preventDefault(); document.getElementById('searchBar').focus(); }
+  if(e.ctrlKey && e.key==='b'){ e.preventDefault(); document.getElementById('themeToggle').click(); }
+});
+const dropArea=document.getElementById('messages');
+['dragenter','dragover'].forEach(ev=>dropArea.addEventListener(ev,e=>{e.preventDefault(); dropArea.classList.add('drop-hover');}));
+['dragleave','drop'].forEach(ev=>dropArea.addEventListener(ev,e=>{e.preventDefault(); dropArea.classList.remove('drop-hover');}));
+dropArea.addEventListener('drop',e=>{
+  const file=e.dataTransfer.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=ev=>{fileData=ev.target.result; sendMessage('',fileData);};
+    reader.readAsDataURL(file);
+  }
+});
 function init(){
   generateUser();
   ensureDefaults();
   render();
+  if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
 }
 init();
