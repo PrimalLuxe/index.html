@@ -1,312 +1,832 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Primalluxe — QA Tester • Moderator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    :root { --bg:#0b0c10; --panel:#0f1623; --muted:#9ca3af; --ink:#e5e7eb; --a1:#6366f1; --a2:#8b5cf6; --a3:#06b6d4; }
-    html,body{height:100%}
-    body{background:var(--bg);color:white;}
-    .backdrop{position:fixed;inset:0;pointer-events:none;overflow:hidden}
-    .grad-glow{position:absolute;inset:0;background:
-      radial-gradient(1200px 600px at 80% -10%, rgba(99,102,241,.16), transparent),
-      radial-gradient(900px 450px at 10% 10%, rgba(56,189,248,.10), transparent),
-      radial-gradient(700px 350px at 50% 120%, rgba(139,92,246,.10), transparent)}
-    .grid-overlay::before{content:"";position:absolute;inset:0;background:
-      linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px) 0 0/40px 40px,
-      linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px) 0 0/40px 40px;opacity:.05;mask:radial-gradient(60% 60% at 50% 40%, #000 60%, transparent);animation:grid-pan 30s linear infinite}
-    @keyframes grid-pan{from{transform:translateY(0)}to{transform:translateY(-40px)}}
-    .gradient-text{background-image:linear-gradient(90deg,var(--a1),var(--a2),var(--a3));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:1.25rem;transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .card:hover{transform:translateY(-6px);box-shadow:0 24px 60px rgba(0,0,0,.55)}
-    .orb{position:absolute;filter:blur(30px);opacity:.14;mix-blend:screen;border-radius:50%}
-    .orb.o1{width:420px;height:420px;left:-120px;top:-120px;background:#22d3ee;animation:drift1 22s ease-in-out infinite}
-    .orb.o2{width:520px;height:520px;right:-160px;bottom:-160px;background:#8b5cf6;animation:drift2 28s ease-in-out infinite}
-    @keyframes drift1{0%{transform:translate(0,0)}50%{transform:translate(40px,30px)}100%{transform:translate(0,0)}}
-    @keyframes drift2{0%{transform:translate(0,0)}50%{transform:translate(-50px,-30px)}100%{transform:translate(0,0)}}
-    footer{background:var(--panel);border-top:1px solid rgba(255,255,255,.06)}
-    .stage{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:1.5rem}
-    .hint{font-size:.75rem;color:var(--muted)}
-    #playground{height:clamp(540px,70vh,880px);display:block}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Primalluxe — Tester Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&family=Syncopate:wght@700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#030014;--glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.09)}
+html,body{height:100%;overflow-x:hidden}
+body{
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(rgba(255,255,255,0.07) 1px,transparent 1px),
+    radial-gradient(circle at 12% 18%,rgba(109,40,217,.22) 0%,transparent 55%),
+    radial-gradient(circle at 88% 82%,rgba(6,182,212,.14) 0%,transparent 55%);
+  background-size:50px 50px,100% 100%,100% 100%;
+  background-attachment:fixed;
+  color:#fff;font-family:'Outfit',sans-serif;padding-bottom:60px;
+}
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(90px)}
+.orb1{width:500px;height:500px;background:rgba(109,40,217,.1);top:-150px;left:-150px;animation:orbA 22s ease-in-out infinite}
+.orb2{width:420px;height:420px;background:rgba(6,182,212,.07);bottom:-100px;right:-100px;animation:orbB 18s ease-in-out infinite}
+@keyframes orbA{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-30px)}}
+@keyframes orbB{0%,100%{transform:translate(0,0)}50%{transform:translate(-35px,25px)}}
+.god-text{font-family:'Syncopate',sans-serif;text-transform:uppercase;letter-spacing:.08em;background:linear-gradient(160deg,#fff 0%,#a5b4fc 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* Glass cards — backdrop-filter stays on non-tilting cards */
+.god-card{
+  background:var(--glass);border:1px solid var(--border);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:20px;position:relative;overflow:hidden;
+  transition:border-color .3s,box-shadow .3s;
+}
+.god-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 60%);pointer-events:none;z-index:1;border-radius:inherit}
+
+/* ─── WORK CARDS ───────────────────────────────────────────────────────────
+   Root cause of blur: backdrop-filter + JS inline rotateX/Y forces a
+   compositing layer repaint on EVERY mousemove, which smears subpixel text.
+   Fix: solid opaque-dark background (no backdrop-filter) + pure CSS :hover
+   perspective tilt. Browser composites this on the GPU — no smearing.
+───────────────────────────────────────────────────────────────────────── */
+.work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;perspective:1400px}
+.work-card-3d{
+  padding:22px;
+  background:rgba(13,9,30,0.94);
+  border:1px solid rgba(255,255,255,0.09);
+  border-radius:20px;position:relative;overflow:hidden;
+  transform-style:preserve-3d;
+  transition:transform .38s cubic-bezier(.22,1,.36,1),border-color .35s,box-shadow .35s;
+  will-change:transform;
+}
+.work-card-3d::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.055) 0%,transparent 55%);pointer-events:none;border-radius:inherit;z-index:1}
+.work-card-3d:hover{
+  transform:perspective(700px) rotateY(-5deg) rotateX(2.5deg) translateY(-6px);
+  border-color:rgba(167,139,250,.52);
+  box-shadow:0 28px 64px -12px rgba(0,0,0,.8),0 0 36px -6px rgba(139,92,246,.28),inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+/* server icon — crisp, shimmer while loading */
+.server-icon{
+  width:52px;height:52px;border-radius:14px;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.055);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.54rem;color:rgba(255,255,255,.35);
+  font-family:'JetBrains Mono',monospace;
+  text-align:center;letter-spacing:.06em;line-height:1.4;
+  overflow:hidden;
+  transition:box-shadow .25s;
+}
+.server-icon.loading{
+  background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.04) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.server-icon img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
+
+/* info items */
+.info-item{
+  display:flex;gap:14px;align-items:flex-start;padding:14px 18px;
+  border-radius:14px;background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.06);margin-bottom:8px;
+  transition:background .2s,border-color .2s,transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s;
+  cursor:default;
+}
+.info-item:hover{background:rgba(255,255,255,.06);border-color:rgba(167,139,250,.35);transform:translateX(4px);box-shadow:0 8px 24px -6px rgba(0,0,0,.4),-4px 0 16px -4px rgba(139,92,246,.15)}
+
+/* badges */
+.badge{font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:800;letter-spacing:.12em;padding:3px 10px;border-radius:99px;text-transform:uppercase;white-space:nowrap}
+.badge-qa{background:rgba(34,211,238,.1);color:#67e8f9;border:1px solid rgba(34,211,238,.25)}
+.badge-mod{background:rgba(16,185,129,.1);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+
+/* buttons */
+.btn-god{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:12px;transition:all .25s;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:10px;padding:12px 20px;font-weight:700;font-size:.875rem;letter-spacing:.05em;cursor:pointer}
+.btn-god:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.42)}
+
+/* nav */
+nav{position:fixed;top:0;width:100%;z-index:200;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(3,0,20,.88);backdrop-filter:blur(24px)}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nav-logo{font-family:'Syncopate',sans-serif;text-transform:uppercase;letter-spacing:.08em;background:linear-gradient(160deg,#fff 0%,#a5b4fc 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.1rem;cursor:pointer;user-select:none;white-space:nowrap;flex-shrink:0}
+.nav-tabs{display:flex;gap:4px;align-items:center;position:relative}
+#nav-pill{position:absolute;border-radius:8px;background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.32);pointer-events:none;transition:left .28s cubic-bezier(.22,1,.36,1),width .28s cubic-bezier(.22,1,.36,1),top .28s,height .28s}
+.nav-tab{font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);padding:6px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;transition:color .2s;user-select:none;position:relative;z-index:1}
+.nav-tab:hover{color:rgba(255,255,255,.8)}
+.nav-tab.active{color:#c4b5fd}
+
+/* hamburger */
+.ham-btn{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;background:none;border:none;z-index:201;flex-shrink:0}
+.ham-btn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all .3s}
+.ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.ham-btn.open span:nth-child(2){opacity:0}
+.ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* mobile drawer */
+.mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;bottom:0;z-index:190;background:rgba(3,0,20,.97);backdrop-filter:blur(20px);padding:24px 20px;flex-direction:column;gap:8px;overflow-y:auto;transform:translateX(100%);transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.mobile-menu.open{transform:translateX(0)}
+.mob-tab{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45);padding:16px 20px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);cursor:pointer;text-align:left;transition:all .2s}
+.mob-tab:hover{background:rgba(255,255,255,.06);color:#fff;border-color:rgba(167,139,250,.3)}
+.mob-tab.active{background:rgba(139,92,246,.14);color:#c4b5fd;border-color:rgba(139,92,246,.32)}
+
+/* pages */
+.page{display:none;position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:88px 20px 40px}
+.page.active{display:block}
+
+/* hero */
+#hero-h1{font-weight:900;line-height:.92;font-size:clamp(2.4rem,6vw,5rem);user-select:none}
+#hero-h1 .l1{display:block;letter-spacing:-.04em;background:linear-gradient(160deg,#fff,#6b7280);-webkit-background-clip:text;background-clip:text;color:transparent}
+#hero-h1 .l2{display:block;letter-spacing:-.04em;background:linear-gradient(160deg,#a5b4fc,#4338ca);-webkit-background-clip:text;background-clip:text;color:transparent}
+#hero-h1 .l3{display:block;font-size:clamp(.85rem,2.2vw,1.7rem);margin-top:.35em;letter-spacing:.04em;background:linear-gradient(160deg,#e5e7eb,#6b7280);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* mesh */
+#mesh-wrap{width:100%;height:380px;border-radius:20px;border:1px solid rgba(255,255,255,.07);background:radial-gradient(ellipse at 40% 50%,#0d0a28 0%,#04020e 70%,#000 100%);position:relative;overflow:hidden;cursor:crosshair;flex-shrink:0}
+#mesh-canvas{display:block;width:100%;height:100%}
+#mesh-hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:.2em;color:rgba(255,255,255,.13);text-transform:uppercase;pointer-events:none;white-space:nowrap}
+
+/* stat cards */
+.stat-card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:18px;text-align:center;transition:background .2s,border-color .25s,transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s;cursor:default;will-change:transform}
+.stat-card:hover{background:rgba(255,255,255,.06);border-color:rgba(167,139,250,.4);transform:translateY(-6px) scale(1.04);box-shadow:0 18px 40px -8px rgba(0,0,0,.6),0 0 24px -4px rgba(139,92,246,.3)}
+
+/* availability */
+.avail-row{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);margin-bottom:7px;transition:background .2s,border-color .2s,transform .2s,box-shadow .2s}
+.avail-row:hover{background:rgba(255,255,255,.05);border-color:rgba(167,139,250,.22);transform:translateX(4px);box-shadow:4px 0 20px -4px rgba(139,92,246,.15)}
+.avail-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.avail-dot.green{background:#4ade80;box-shadow:0 0 8px #4ade80}
+.avail-dot.cyan{background:#22d3ee;box-shadow:0 0 8px #22d3ee}
+
+/* status pill */
+.s-pill{display:inline-flex;align-items:center;gap:10px;border-radius:99px;padding:10px 22px;font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;letter-spacing:.12em;transition:all .4s cubic-bezier(.22,1,.36,1)}
+.s-pill.on{background:rgba(74,222,128,.12);color:#4ade80;border:2px solid rgba(74,222,128,.4);box-shadow:0 0 28px -4px rgba(74,222,128,.35),inset 0 0 16px rgba(74,222,128,.05)}
+.s-pill.off{background:rgba(239,68,68,.1);color:#f87171;border:2px solid rgba(239,68,68,.35);box-shadow:0 0 24px -4px rgba(239,68,68,.3),inset 0 0 16px rgba(239,68,68,.05)}
+@keyframes sdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.7)}}
+.sdot{width:10px;height:10px;border-radius:50%;animation:sdot 2s ease-in-out infinite;flex-shrink:0}
+.s-pill.on .sdot{background:#4ade80;box-shadow:0 0 8px #4ade80}
+.s-pill.off .sdot{background:#f87171;box-shadow:0 0 8px #f87171}
+
+/* stagger */
+.stagger-item{opacity:0;transform:translateY(14px);transition:opacity .4s cubic-bezier(.22,1,.36,1),transform .4s cubic-bezier(.22,1,.36,1)}
+
+/* section header */
+.section-header{display:flex;align-items:center;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+.section-header h2{flex-shrink:0}
+.divider-line{height:1px;background:linear-gradient(to right,rgba(99,102,241,.5),transparent);flex-grow:1;min-width:30px}
+
+/* layout grids */
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-bottom:40px}
+.tester-grid{display:grid;grid-template-columns:3fr 2fr;gap:24px}
+.avail-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.about-two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+.work-card-inner{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.work-card-text{flex:1;min-width:0}
+
+.discord-invite{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.35);text-decoration:none;transition:color .2s;padding-top:12px;display:block}
+.discord-invite:hover{color:#7289da}
+
+.skill-badge-3d{font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:800;letter-spacing:.12em;padding:6px 14px;border-radius:99px;text-transform:uppercase;white-space:nowrap;cursor:default;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s,filter .2s;display:inline-block}
+.skill-badge-3d:hover{transform:translateY(-4px) scale(1.1);filter:brightness(1.3)}
+
+.report-card{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:.72rem;line-height:2}
+
+@media(max-width:900px){
+  .work-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-grid{grid-template-columns:1fr;gap:28px}
+  .tester-grid{grid-template-columns:1fr}
+  .avail-grid{grid-template-columns:1fr}
+  .about-two{grid-template-columns:1fr}
+  .nav-tabs,#nav-pill{display:none}
+  .ham-btn{display:flex}
+  .mobile-menu{display:flex}
+  #mesh-wrap{height:260px}
+}
+@media(max-width:600px){
+  .work-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:repeat(3,1fr)}
+  .page{padding:80px 16px 40px}
+}
+</style>
 </head>
-<body class="min-h-screen relative">
-  <div class="backdrop">
-    <canvas id="sky" class="absolute inset-0" style="display:block"></canvas>
-    <div class="grad-glow"></div>
-    <div class="orb o1"></div>
-    <div class="orb o2"></div>
-    <div class="grid-overlay absolute inset-0"></div>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <span class="nav-logo" onclick="showPage('home')">Primalluxe</span>
+    <div class="nav-tabs" id="nav-tabs">
+      <div id="nav-pill"></div>
+      <button class="nav-tab active" data-page="home"         onclick="showPage('home')">Home</button>
+      <button class="nav-tab"        data-page="work"         onclick="showPage('work')">Work</button>
+      <button class="nav-tab"        data-page="tester"       onclick="showPage('tester')">Tester</button>
+      <button class="nav-tab"        data-page="mod"          onclick="showPage('mod')">Moderator</button>
+      <button class="nav-tab"        data-page="availability" onclick="showPage('availability')">Availability</button>
+      <button class="nav-tab"        data-page="about"        onclick="showPage('about')">About</button>
+    </div>
+    <button class="ham-btn" id="ham" aria-label="Toggle menu" onclick="toggleMobileMenu()">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+</nav>
 
-  <main class="relative max-w-6xl mx-auto px-4 md:px-8 pb-20">
-    <header class="pt-14 md:pt-20 grid md:grid-cols-2 gap-10 items-center">
-      <div class="space-y-6">
-        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">
-          <span class="block">Primalluxe</span>
-          <span class="gradient-text block mt-2">QA Tester • Moderator</span>
+<!-- MOBILE DRAWER -->
+<div class="mobile-menu" id="mobile-menu">
+  <button class="mob-tab active" data-page="home"         onclick="showPage('home');closeMobileMenu()">Home</button>
+  <button class="mob-tab"        data-page="work"         onclick="showPage('work');closeMobileMenu()">Work</button>
+  <button class="mob-tab"        data-page="tester"       onclick="showPage('tester');closeMobileMenu()">Tester</button>
+  <button class="mob-tab"        data-page="mod"          onclick="showPage('mod');closeMobileMenu()">Moderator</button>
+  <button class="mob-tab"        data-page="availability" onclick="showPage('availability');closeMobileMenu()">Availability</button>
+  <button class="mob-tab"        data-page="about"        onclick="showPage('about');closeMobileMenu()">About</button>
+</div>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="hero-grid">
+    <div>
+      <div id="hero-h1-outer" style="position:relative;margin-bottom:24px">
+        <h1 id="hero-h1">
+          <span class="l1">I BREAK</span>
+          <span class="l2">GAMES</span>
+          <span class="l3">SO PEOPLE CAN ENJOY THEM.</span>
         </h1>
-        <p class="text-white/80 text-lg max-w-2xl">I break games so players can love them.</p>
-        <div class="flex flex-wrap gap-3 pt-2">
-          <a href="https://www.roblox.com/users/4233358105/profile" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0f172a] hover:bg-[#111c33] border border-white/10 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l10 10-10 10L2 12 12 2zm0 6l-4 4 4 4 4-4-4-4z"/></svg>
-            <span>Roblox Profile</span>
-          </a>
+      </div>
+      <div class="mono" style="font-size:.72rem;letter-spacing:.14em;color:rgba(165,180,252,.45);margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <span>TESTER</span>
+        <span style="width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.2);display:inline-block"></span>
+        <span>MODERATOR</span>
+        <span style="width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.2);display:inline-block"></span>
+        <span style="color:#22d3ee">BOT DEVELOPER</span>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px">
+        <a href="https://www.roblox.com/users/4233358105/profile" target="_blank" class="btn-god">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L22 12L12 22L2 12L12 2Z"/></svg>ROBLOX
+        </a>
+        <a href="https://discord.com/users/788767699256737824" target="_blank" class="btn-god">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.056a19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>DISCORD
+        </a>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="mono" style="font-size:1.8rem;font-weight:900" id="stat-reports">0+</div><div class="mono" style="font-size:.6rem;color:#6b7280;font-weight:700;letter-spacing:.12em;margin-top:4px">REPORTS</div></div>
+        <div class="stat-card"><div class="mono" style="font-size:1.8rem;font-weight:900" id="stat-projects">0</div><div class="mono" style="font-size:.6rem;color:#6b7280;font-weight:700;letter-spacing:.12em;margin-top:4px">PROJECTS</div></div>
+        <div class="stat-card"><div class="mono" style="font-size:1.8rem;font-weight:900;color:#22d3ee" id="stat-years">0+</div><div class="mono" style="font-size:.6rem;color:#6b7280;font-weight:700;letter-spacing:.12em;margin-top:4px">YEARS</div></div>
+      </div>
+    </div>
+    <div id="mesh-wrap"><canvas id="mesh-canvas"></canvas><div id="mesh-hint">move cursor to interact</div></div>
+  </div>
+</div>
+
+<!-- WORK -->
+<div id="page-work" class="page">
+  <div class="section-header">
+    <h2 class="god-text stagger-item" style="font-size:1.75rem">Selected Works</h2>
+    <div class="divider-line stagger-item"></div>
+  </div>
+  <div class="work-grid">
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-redeemer"><span>RDM</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Redeemer</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Upcoming PvP game</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span class="badge badge-qa">QA Tester</span>
+          <span class="badge badge-mod">Moderator</span>
         </div>
       </div>
+      <a href="https://discord.gg/6GPnrnkc7x" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
 
-      <div class="card p-6">
-        <div class="text-sm text-white/70 mb-2">Snapshot</div>
-        <div class="text-sm text-white/80">Discord</div>
-        <div class="text-lg font-semibold">@Primalluxe</div>
-        <div class="grid grid-cols-2 gap-3 text-center">
-          <div class="rounded-xl bg-[#0f172a] p-3 border border-white/10">
-            <div class="text-xl font-extrabold">58</div>
-            <div class="text-xs text-white/70">Servers</div>
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-brainrot"><span>STB</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Survive the Brainrots</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Upcoming brainrot game by LazarBeam</p>
+        </div>
+        <span class="badge badge-qa">QA Tester</span>
+      </div>
+      <a href="https://discord.gg/K35DDSnAap" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-animeexp"><span>AEX</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Anime Expeditions</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Upcoming Tower Defence Game</p>
+        </div>
+        <span class="badge badge-qa">QA Tester</span>
+      </div>
+      <a href="https://discord.gg/mgzV2Gmt5g" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-dubai"><span>DXB</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Dubai Roleplay</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Roleplay Testing</p>
+        </div>
+        <span class="badge badge-qa">QA Tester</span>
+      </div>
+      <a href="https://discord.gg/VskVF8GGJf" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-apd"><span>APD</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Anime Power Defense</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Anime Tower Defense game</p>
+        </div>
+        <span class="badge badge-qa">QA Tester</span>
+      </div>
+      <a href="https://discord.gg/x6qHgvayt8" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-utd"><span>UTD</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Untitled Dungeons</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Currently in development</p>
+        </div>
+        <span class="badge badge-qa">QA Tester</span>
+      </div>
+      <a href="https://discord.gg/gBcvvAR52p" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-eld"><span>ELD</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Elemental Duels</h3>
+          <p style="font-size:.82rem;color:#9ca3af">PvP Duels</p>
+        </div>
+        <span class="badge badge-qa">QA Tester</span>
+      </div>
+      <a href="https://discord.gg/bR9Q775yuY" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-bda"><span>BDA</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Badminton Allstars</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Upcoming game</p>
+        </div>
+        <span class="badge badge-qa">QA Tester</span>
+      </div>
+      <a href="https://discord.gg/NYk6MTXRtz" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-dev"><span>DEV</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Dev Cove</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Development Server</p>
+        </div>
+        <span class="badge badge-mod">Moderator</span>
+      </div>
+      <a href="https://discord.gg/V4CXtSm3Jj" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+    <article class="work-card-3d stagger-item">
+      <div class="work-card-inner">
+        <div class="server-icon loading" id="icon-vireth" style="background:rgba(100,0,0,.4);border-color:rgba(200,50,50,.2)"><span style="color:rgba(255,100,100,.6)">VTH</span></div>
+        <div class="work-card-text">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px">Vireth</h3>
+          <p style="font-size:.82rem;color:#9ca3af">Upcoming horror game</p>
+        </div>
+        <span class="badge badge-qa">QA Tester</span>
+      </div>
+      <a href="https://discord.com/invite/vireth" target="_blank" class="discord-invite">JOIN DISCORD →</a>
+    </article>
+
+  </div>
+</div>
+
+<!-- TESTER -->
+<div id="page-tester" class="page">
+  <div class="section-header">
+    <h2 class="god-text stagger-item" style="font-size:1.75rem">Tester Info</h2>
+    <div class="divider-line stagger-item"></div>
+    <span class="badge badge-qa stagger-item">QA Tester</span>
+  </div>
+  <div class="tester-grid">
+    <div>
+      <div class="info-item stagger-item">
+        <div class="mono" style="font-size:.68rem;font-weight:700;color:#a78bfa;flex-shrink:0;width:24px;text-align:center">01</div>
+        <span style="font-size:.9rem;line-height:1.5">I take a picture of the console if the bug shows up in there.</span>
+      </div>
+      <div class="info-item stagger-item">
+        <div class="mono" style="font-size:.68rem;font-weight:700;color:#a78bfa;flex-shrink:0;width:24px;text-align:center">02</div>
+        <span style="font-size:.9rem;line-height:1.5">I try to replicate the bug on several devices and add the devices affected by the bug in my bug report.</span>
+      </div>
+      <div class="info-item stagger-item">
+        <div class="mono" style="font-size:.68rem;font-weight:700;color:#a78bfa;flex-shrink:0;width:24px;text-align:center">03</div>
+        <span style="font-size:.9rem;line-height:1.5">I take a video or photo of the bug on each device.</span>
+      </div>
+      <div class="info-item stagger-item">
+        <div class="mono" style="font-size:.68rem;font-weight:700;color:#a78bfa;flex-shrink:0;width:24px;text-align:center">04</div>
+        <span style="font-size:.9rem;line-height:1.5">I write a detailed explanation of the bug using all of the information above.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="god-card stagger-item" style="padding:24px">
+        <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:12px;letter-spacing:.14em">REPORT FORMAT</div>
+        <div class="report-card">
+          <div><span style="color:#22d3ee">Bug Title:</span> <span style="color:#d1d5db">[short description]</span></div>
+          <div><span style="color:#22d3ee">Severity:</span> <span style="color:#d1d5db">[Low / Med / High / Critical]</span></div>
+          <div style="color:#22d3ee">Steps to Reproduce:</div>
+          <div style="color:#9ca3af;padding-left:12px">1. [first action]</div>
+          <div style="color:#9ca3af;padding-left:12px">2. [second action]</div>
+          <div style="color:#9ca3af;padding-left:12px">3. ...</div>
+          <div><span style="color:#22d3ee">Expected:</span> <span style="color:#d1d5db">[what should happen]</span></div>
+          <div><span style="color:#22d3ee">Actual:</span> <span style="color:#d1d5db">[what did happen]</span></div>
+          <div><span style="color:#22d3ee">Proof:</span> <span style="color:#d1d5db">[screenshot / video]</span></div>
+          <div><span style="color:#22d3ee">Console:</span> <span style="color:#d1d5db">[screenshot]</span></div>
+          <div><span style="color:#22d3ee">Devices:</span> <span style="color:#d1d5db">[list of affected]</span></div>
+        </div>
+      </div>
+      <div class="god-card stagger-item" style="padding:24px">
+        <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:16px;letter-spacing:.14em">STATS</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.9rem;color:#9ca3af">Total Reports</span><span class="mono" style="font-weight:700">200+</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.9rem;color:#9ca3af">Experience</span><span class="mono" style="font-weight:700">3+ years</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.9rem;color:#9ca3af">Projects Tested</span><span class="mono" style="font-weight:700">10+</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODERATOR -->
+<div id="page-mod" class="page">
+  <div class="section-header">
+    <h2 class="god-text stagger-item" style="font-size:1.75rem">Moderator Info</h2>
+    <div class="divider-line stagger-item" style="background:linear-gradient(to right,rgba(16,185,129,.5),transparent)"></div>
+    <span class="badge badge-mod stagger-item">Moderator</span>
+  </div>
+  <div class="tester-grid">
+    <div>
+      <div class="info-item stagger-item">
+        <div class="mono" style="font-size:.68rem;font-weight:700;color:#34d399;flex-shrink:0;width:24px;text-align:center">01</div>
+        <span style="font-size:.9rem;line-height:1.5">I know when and how to use all moderation commands</span>
+      </div>
+      <div class="info-item stagger-item">
+        <div class="mono" style="font-size:.68rem;font-weight:700;color:#34d399;flex-shrink:0;width:24px;text-align:center">02</div>
+        <span style="font-size:.9rem;line-height:1.5">Great at communication and calming situations down</span>
+      </div>
+      <div class="info-item stagger-item">
+        <div class="mono" style="font-size:.68rem;font-weight:700;color:#34d399;flex-shrink:0;width:24px;text-align:center">03</div>
+        <span style="font-size:.9rem;line-height:1.5">Know Discord ToS and community guidelines</span>
+      </div>
+      <div class="info-item stagger-item">
+        <div class="mono" style="font-size:.68rem;font-weight:700;color:#34d399;flex-shrink:0;width:24px;text-align:center">04</div>
+        <span style="font-size:.9rem;line-height:1.5">Can build and deploy custom Discord bots</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="god-card stagger-item" style="padding:24px">
+        <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:16px;letter-spacing:.14em">MODERATION STYLE</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:7px;height:7px;border-radius:50%;background:#34d399;flex-shrink:0"></div><span style="font-size:.9rem;color:#d1d5db">Warn before punish</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:7px;height:7px;border-radius:50%;background:#34d399;flex-shrink:0"></div><span style="font-size:.9rem;color:#d1d5db">Context-based decisions</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:7px;height:7px;border-radius:50%;background:#34d399;flex-shrink:0"></div><span style="font-size:.9rem;color:#d1d5db">Always transparent with punishments</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:7px;height:7px;border-radius:50%;background:#34d399;flex-shrink:0"></div><span style="font-size:.9rem;color:#d1d5db">Fast response to situations</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:7px;height:7px;border-radius:50%;background:#34d399;flex-shrink:0"></div><span style="font-size:.9rem;color:#d1d5db">Can build custom bots &amp; automod</span></div>
+        </div>
+      </div>
+      <div class="god-card stagger-item" style="padding:24px">
+        <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:16px;letter-spacing:.14em">EXPERIENCE</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between"><span style="font-size:.9rem;color:#9ca3af">Servers Moderated</span><span class="mono" style="font-weight:700">2</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="font-size:.9rem;color:#9ca3af">Bot Projects</span><span class="mono" style="font-weight:700">Active</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="font-size:.9rem;color:#9ca3af">Time Zone</span><span class="mono" style="font-weight:700">CDT</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AVAILABILITY -->
+<div id="page-availability" class="page">
+  <div class="section-header" style="margin-bottom:32px">
+    <h2 class="god-text stagger-item" style="font-size:1.75rem">Availability</h2>
+    <div class="divider-line stagger-item" style="background:linear-gradient(to right,rgba(74,222,128,.5),transparent)"></div>
+  </div>
+  <div class="god-card stagger-item" style="padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div>
+      <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:10px;letter-spacing:.14em">CURRENT STATUS</div>
+      <span id="status-pill" class="s-pill on"><span class="sdot"></span><span id="status-label">AVAILABLE FOR WORK</span></span>
+    </div>
+    <div style="text-align:right">
+      <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:6px;letter-spacing:.14em">CURRENT CDT TIME</div>
+      <div class="mono" style="font-size:1.6rem;font-weight:700" id="cst-clock">--:--:-- --</div>
+      <div class="mono" style="font-size:.7rem;color:#6b7280;margin-top:4px" id="cst-date">---</div>
+    </div>
+  </div>
+  <div class="avail-grid">
+    <div class="god-card stagger-item" style="padding:28px">
+      <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:20px;letter-spacing:.14em">WEEKLY SCHEDULE · CDT</div>
+      <div>
+        <div class="avail-row"><div class="avail-dot green"></div><div style="flex-grow:1"><div style="font-weight:600;font-size:.9rem">Saturday</div><div class="mono" style="font-size:.62rem;color:#6b7280;margin-top:2px">Weekend</div></div><div class="mono" style="font-size:.85rem;font-weight:700;color:#4ade80">9:00 AM – 8:00 PM</div></div>
+        <div class="avail-row"><div class="avail-dot green"></div><div style="flex-grow:1"><div style="font-weight:600;font-size:.9rem">Sunday</div><div class="mono" style="font-size:.62rem;color:#6b7280;margin-top:2px">Weekend</div></div><div class="mono" style="font-size:.85rem;font-weight:700;color:#4ade80">9:00 AM – 8:00 PM</div></div>
+        <div style="height:8px"></div>
+        <div class="avail-row"><div class="avail-dot cyan"></div><div style="flex-grow:1"><div style="font-weight:600;font-size:.9rem">Monday</div><div class="mono" style="font-size:.62rem;color:#6b7280;margin-top:2px">Weekday</div></div><div class="mono" style="font-size:.85rem;font-weight:700;color:#22d3ee">4:00 PM – 8:00 PM</div></div>
+        <div class="avail-row"><div class="avail-dot cyan"></div><div style="flex-grow:1"><div style="font-weight:600;font-size:.9rem">Tuesday</div><div class="mono" style="font-size:.62rem;color:#6b7280;margin-top:2px">Weekday</div></div><div class="mono" style="font-size:.85rem;font-weight:700;color:#22d3ee">4:00 PM – 8:00 PM</div></div>
+        <div class="avail-row"><div class="avail-dot cyan"></div><div style="flex-grow:1"><div style="font-weight:600;font-size:.9rem">Wednesday</div><div class="mono" style="font-size:.62rem;color:#6b7280;margin-top:2px">Weekday</div></div><div class="mono" style="font-size:.85rem;font-weight:700;color:#22d3ee">4:00 PM – 8:00 PM</div></div>
+        <div class="avail-row"><div class="avail-dot cyan"></div><div style="flex-grow:1"><div style="font-weight:600;font-size:.9rem">Thursday</div><div class="mono" style="font-size:.62rem;color:#6b7280;margin-top:2px">Weekday</div></div><div class="mono" style="font-size:.85rem;font-weight:700;color:#22d3ee">4:00 PM – 8:00 PM</div></div>
+        <div class="avail-row"><div class="avail-dot cyan"></div><div style="flex-grow:1"><div style="font-weight:600;font-size:.9rem">Friday</div><div class="mono" style="font-size:.62rem;color:#6b7280;margin-top:2px">Weekday</div></div><div class="mono" style="font-size:.85rem;font-weight:700;color:#22d3ee">4:00 PM – 8:00 PM</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="god-card stagger-item" style="padding:28px">
+        <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:20px;letter-spacing:.14em">QUICK SUMMARY</div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18)"><span class="mono" style="font-size:.58rem;font-weight:700;color:#4ade80;text-align:center;line-height:1.3">SAT<br>SUN</span></div>
+            <div><div style="font-weight:700;font-size:.95rem">Weekends</div><div style="font-size:.85rem;color:#9ca3af;margin-top:2px">9 AM – 8 PM CDT · <span style="color:#4ade80;font-weight:600">11 hours</span></div></div>
           </div>
-          <div class="rounded-xl bg-[#0f172a] p-3 border border-white/10">
-            <div class="text-xl font-extrabold">200+</div>
-            <div class="text-xs text-white/70">Reports</div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.18)"><span class="mono" style="font-size:.62rem;font-weight:700;color:#22d3ee">M–F</span></div>
+            <div><div style="font-weight:700;font-size:.95rem">Weekdays</div><div style="font-size:.85rem;color:#9ca3af;margin-top:2px">4 PM – 8 PM CDT · <span style="color:#22d3ee;font-weight:600">4 hours</span></div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.18)"><span class="mono" style="font-size:.62rem;font-weight:700;color:#a78bfa">CDT</span></div>
+            <div><div style="font-weight:700;font-size:.95rem">Time Zone</div><div style="font-size:.85rem;color:#9ca3af;margin-top:2px">Central Daylight Time (CDT)</div></div>
           </div>
         </div>
       </div>
-    </header>
+    </div>
+  </div>
+</div>
 
-    <section class="mt-16">
-      <h2 class="text-2xl md:text-3xl font-bold mb-6">Featured Work</h2>
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <article class="card p-6">
-          <h3 class="text-lg font-semibold">Anime Expeditions</h3>
-          <p class="text-xs text-white/70 mb-2">QA Tester</p>
-          <ul class="text-sm text-white/80 mb-4"><li>Upcoming Tower Defence Game</li></ul>
-          <a href="https://discord.gg/mgzV2Gmt5g" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1.5 bg-[#0f172a] border border-white/10 rounded-lg hover:bg-[#111c33] transition">Join Discord</a>
-        </article>
-        <article class="card p-6">
-          <h3 class="text-lg font-semibold">Dubai Roleplay</h3>
-          <p class="text-xs text-white/70 mb-2">QA Tester</p>
-          <ul class="text-sm text-white/80 mb-4"><li>Roleplay Testing</li></ul>
-          <a href="https://discord.gg/VskVF8GGJf" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1.5 bg-[#0f172a] border border-white/10 rounded-lg hover:bg-[#111c33] transition">Join Discord</a>
-        </article>
-        <article class="card p-6">
-          <h3 class="text-lg font-semibold">Elemental Duels</h3>
-          <p class="text-xs text-white/70 mb-2">QA Tester</p>
-          <ul class="text-sm text-white/80 mb-4"><li>PvP Duels</li></ul>
-          <a href="https://discord.gg/bR9Q775yuY" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1.5 bg-[#0f172a] border border-white/10 rounded-lg hover:bg-[#111c33] transition">Join Discord</a>
-        </article>
-        <article class="card p-6">
-          <h3 class="text-lg font-semibold">Dev Cove</h3>
-          <p class="text-xs text-white/70 mb-2">Moderator</p>
-          <ul class="text-sm text-white/80 mb-4"><li>Development Server</li></ul>
-          <a href="https://discord.gg/V4CXtSm3Jj" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1.5 bg-[#0f172a] border border-white/10 rounded-lg hover:bg-[#111c33] transition">Join Discord</a>
-        </article>
+<!-- ABOUT -->
+<div id="page-about" class="page">
+  <div class="section-header">
+    <h2 class="god-text stagger-item" style="font-size:1.75rem">About Me</h2>
+    <div class="divider-line stagger-item"></div>
+  </div>
+  <div class="god-card stagger-item" style="padding:32px">
+    <div class="about-two">
+      <div>
+        <div class="info-item stagger-item">
+          <div class="mono" style="font-size:.68rem;font-weight:700;color:#a78bfa;flex-shrink:0;width:24px;text-align:center">01</div>
+          <span style="font-size:.9rem;color:#d1d5db;line-height:1.5">Very active, easy to work with, and good at communicating with teams</span>
+        </div>
+        <div class="info-item stagger-item">
+          <div class="mono" style="font-size:.68rem;font-weight:700;color:#a78bfa;flex-shrink:0;width:24px;text-align:center">02</div>
+          <span style="font-size:.9rem;color:#d1d5db;line-height:1.5">Time Zone: Central Daylight Time (CDT)</span>
+        </div>
+        <div class="info-item stagger-item">
+          <div class="mono" style="font-size:.68rem;font-weight:700;color:#a78bfa;flex-shrink:0;width:24px;text-align:center">03</div>
+          <span style="font-size:.9rem;color:#d1d5db;line-height:1.5">15 years old</span>
+        </div>
+        <div class="info-item stagger-item">
+          <div class="mono" style="font-size:.68rem;font-weight:700;color:#a78bfa;flex-shrink:0;width:24px;text-align:center">04</div>
+          <span style="font-size:.9rem;color:#d1d5db;line-height:1.5">3+ years of game testing experience</span>
+        </div>
       </div>
-    </section>
-
-    <section class="mt-16 grid md:grid-cols-2 gap-6">
-      <div class="card p-6">
-        <h3 class="font-semibold text-lg mb-2">About Me</h3>
-        <ul class="text-sm text-white/75 list-disc pl-5 space-y-1">
-          <li>Active, likable, good at communication and teamwork</li>
-          <li>Age: 15</li>
-          <li>Time zone: Central Daylight Time (CDT)</li>
-        </ul>
+      <div class="god-card stagger-item" style="padding:24px">
+        <div class="mono" style="font-size:.6rem;color:#6b7280;margin-bottom:16px;letter-spacing:.14em">SKILLS</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <span class="badge badge-qa skill-badge-3d">Bug Reporting</span>
+          <span class="badge badge-qa skill-badge-3d">QA Testing</span>
+          <span class="badge badge-mod skill-badge-3d">Moderation</span>
+          <span class="badge badge-mod skill-badge-3d">Discord Bots</span>
+          <span class="badge skill-badge-3d" style="background:rgba(167,139,250,.1);color:#c4b5fd;border:1px solid rgba(167,139,250,.25)">Communication</span>
+          <span class="badge skill-badge-3d" style="background:rgba(167,139,250,.1);color:#c4b5fd;border:1px solid rgba(167,139,250,.25)">Team Work</span>
+          <span class="badge skill-badge-3d" style="background:rgba(167,139,250,.1);color:#c4b5fd;border:1px solid rgba(167,139,250,.25)">De-escalation</span>
+        </div>
       </div>
-    </section>
+    </div>
+  </div>
+</div>
 
-    <section class="mt-10 grid md:grid-cols-1 gap-6">
-      <div class="stage p-0 overflow-hidden flex flex-col">
-        <canvas id="playground" class="w-full"></canvas>
-        <div class="px-4 py-3 text-right hint">Drag to orbit • Click for MEGA pulse</div>
-      </div>
-    </section>
+<footer style="position:relative;z-index:1;border-top:1px solid rgba(255,255,255,.05);padding:28px 20px;text-align:center">
+  <span class="mono" style="font-size:.65rem;color:#374151;letter-spacing:.16em">PRIMALLUXE © <span id="footer-year"></span></span>
+</footer>
 
-    <footer class="mt-16 text-center text-sm text-white/60 py-4">© <span id="year"></span> Primalluxe — QA Tester • Moderator</footer>
-  </main>
+<script>
+'use strict';
+document.getElementById('footer-year').textContent = new Date().getFullYear();
 
-  <script>
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
-    document.getElementById('year').textContent = new Date().getFullYear();
+function toggleMobileMenu(){document.getElementById('ham').classList.toggle('open');document.getElementById('mobile-menu').classList.toggle('open')}
+function closeMobileMenu(){document.getElementById('ham').classList.remove('open');document.getElementById('mobile-menu').classList.remove('open')}
 
-    // SHOOTING STARS
-    (function(){
-      const sky = document.getElementById('sky');
-      const ctx = sky.getContext('2d');
-      let W=0,H=0; const stars=[], shooters=[]; const STAR_COUNT=260;
+var curPage='home';
+function showPage(id){
+  if(id===curPage)return;curPage=id;
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  var next=document.getElementById('page-'+id);
+  if(next){next.classList.add('active');staggerIn(next)}
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});
+  var dt=document.querySelector('.nav-tab[data-page="'+id+'"]');
+  if(dt){dt.classList.add('active');moveNavPill(dt)}
+  document.querySelectorAll('.mob-tab').forEach(function(t){t.classList.remove('active')});
+  var mt=document.querySelector('.mob-tab[data-page="'+id+'"]');
+  if(mt)mt.classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+  if(id==='home')setTimeout(animateStats,200);
+}
 
-      function resize(){
-        W = sky.width  = Math.floor(innerWidth * DPR);
-        H = sky.height = Math.floor(innerHeight * DPR);
-        stars.length = 0;
-        for(let i=0;i<STAR_COUNT;i++){
-          stars.push({
-            x: Math.random()*W,
-            y: Math.random()*H,
-            r: (Math.random()*1.2+0.2) * DPR,
-            p: Math.random()*Math.PI*2,
-            s: 0.5 + Math.random()*0.8
-          });
-        }
+function moveNavPill(tab){
+  var pill=document.getElementById('nav-pill'),container=document.getElementById('nav-tabs');
+  if(!pill||!container||!tab)return;
+  var tr=tab.getBoundingClientRect(),cr=container.getBoundingClientRect();
+  pill.style.left=(tr.left-cr.left)+'px';pill.style.top=(tr.top-cr.top)+'px';
+  pill.style.width=tr.width+'px';pill.style.height=tr.height+'px';
+}
+function initPill(){var a=document.querySelector('.nav-tab.active');if(a)moveNavPill(a)}
+window.addEventListener('load',initPill);
+window.addEventListener('resize',function(){var a=document.querySelector('.nav-tab.active');if(a)moveNavPill(a)});
+
+function staggerIn(pageEl){
+  var items=pageEl.querySelectorAll('.stagger-item');
+  items.forEach(function(el,i){
+    el.style.opacity='0';el.style.transform='translateY(14px)';
+    setTimeout(function(){el.style.opacity='1';el.style.transform='translateY(0)'},60+i*55);
+  });
+}
+
+function animateStats(){
+  [{id:'stat-reports',val:200,s:'+'},{id:'stat-projects',val:10,s:''},{id:'stat-years',val:3,s:'+'}].forEach(function(t){
+    var el=document.getElementById(t.id);if(!el)return;
+    var start=null,dur=1200;
+    function tick(ts){if(!start)start=ts;var p=Math.min(1,(ts-start)/dur),ep=1-Math.pow(1-p,3);el.textContent=Math.round(ep*t.val)+t.s;if(p<1)requestAnimationFrame(tick)}
+    requestAnimationFrame(tick);
+  });
+}
+
+var DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function getCDT(){return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}))}
+function pad(n){return String(n).padStart(2,'0')}
+function updateClock(){
+  var c=getCDT(),h=c.getHours(),m=c.getMinutes(),s=c.getSeconds();
+  var ap=h>=12?'PM':'AM',h12=h%12||12;
+  var cl=document.getElementById('cst-clock'),cd=document.getElementById('cst-date');
+  if(cl)cl.textContent=pad(h12)+':'+pad(m)+':'+pad(s)+' '+ap;
+  if(cd)cd.textContent=DAYS[c.getDay()]+', '+MONTHS[c.getMonth()]+' '+c.getDate()+' '+c.getFullYear();
+}
+setInterval(updateClock,1000);updateClock();
+
+function checkStatus(){
+  var c=getCDT(),day=c.getDay(),mins=c.getHours()*60+c.getMinutes();
+  var ok=((day===0||day===6)&&mins>=540&&mins<1200)||((day>=1&&day<=5)&&mins>=960&&mins<1200);
+  var p=document.getElementById('status-pill'),l=document.getElementById('status-label');
+  if(!p)return;p.className='s-pill '+(ok?'on':'off');l.textContent=ok?'AVAILABLE FOR WORK':'NOT AVAILABLE';
+}
+checkStatus();setInterval(checkStatus,30000);
+
+/* hero shatter */
+var heroBreaking=false;
+var FRAGS=[
+  {clip:'polygon(0% 0%, 55% 0%, 48% 40%, 0% 35%)',vx:-90,vy:-65,rot:-12},
+  {clip:'polygon(55% 0%, 100% 0%, 100% 30%, 50% 42%)',vx:100,vy:-60,rot:10},
+  {clip:'polygon(0% 35%, 48% 40%, 44% 68%, 0% 62%)',vx:-105,vy:6,rot:-9},
+  {clip:'polygon(48% 40%, 50% 42%, 54% 68%, 44% 68%)',vx:4,vy:34,rot:6},
+  {clip:'polygon(50% 42%, 100% 30%, 100% 65%, 54% 68%)',vx:110,vy:10,rot:11},
+  {clip:'polygon(0% 62%, 44% 68%, 40% 100%, 0% 100%)',vx:-88,vy:78,rot:-9},
+  {clip:'polygon(40% 68%, 54% 68%, 58% 100%, 38% 100%)',vx:6,vy:96,rot:5},
+  {clip:'polygon(54% 68%, 100% 65%, 100% 100%, 58% 100%)',vx:98,vy:72,rot:11},
+];
+function fireHeroBreak(){
+  if(heroBreaking)return;
+  var wrap=document.getElementById('hero-h1-outer'),h1=document.getElementById('hero-h1');
+  if(!wrap||!h1)return;heroBreaking=true;
+  var rect=h1.getBoundingClientRect(),wRect=wrap.getBoundingClientRect();
+  var offX=rect.left-wRect.left,offY=rect.top-wRect.top,w=rect.width,h=rect.height;
+  var sw=document.createElement('div');
+  sw.style.cssText='position:absolute;left:'+offX+'px;top:'+offY+'px;width:'+w+'px;height:'+h+'px;pointer-events:none;overflow:visible;';
+  wrap.appendChild(sw);h1.style.opacity='0';
+  var shards=FRAGS.map(function(def){
+    var c=h1.cloneNode(true);c.id='';
+    c.style.cssText='position:absolute;top:0;left:0;width:'+w+'px;height:'+h+'px;margin:0;clip-path:'+def.clip+';pointer-events:none;will-change:transform,opacity;opacity:1;transform:translate(0,0) rotate(0deg);transition:none';
+    sw.appendChild(c);return Object.assign({el:c},def);
+  });
+  var t0=performance.now(),DUR=650;
+  function explode(ts){
+    var p=Math.min(1,(ts-t0)/DUR),ep=p*p;
+    shards.forEach(function(s){s.el.style.transform='translate('+s.vx*ep+'px,'+s.vy*ep+'px) rotate('+s.rot*ep+'deg)';s.el.style.opacity=Math.max(0,1-ep*1.15)});
+    if(p<1){requestAnimationFrame(explode)}else{setTimeout(reform,160)}
+  }
+  requestAnimationFrame(explode);
+  function reform(){
+    sw.remove();h1.style.cssText='opacity:0;transform:scale(1.05) translateY(-10px);transition:none;';
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      h1.style.transition='opacity .5s cubic-bezier(.22,1,.36,1),transform .5s cubic-bezier(.22,1,.36,1)';
+      h1.style.opacity='1';h1.style.transform='none';
+      setTimeout(function(){h1.style.transition='';h1.style.transform='';heroBreaking=false},550);
+    })});
+  }
+}
+setTimeout(fireHeroBreak,900);
+setInterval(function(){if(curPage==='home')fireHeroBreak()},8000);
+var heroEl=document.getElementById('hero-h1');
+if(heroEl)heroEl.addEventListener('mouseenter',function(){if(!heroBreaking)setTimeout(fireHeroBreak,50)});
+
+document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(initPill,50);animateStats();
+  var home=document.getElementById('page-home');
+  if(home)setTimeout(function(){staggerIn(home)},300);
+});
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Discord server icon loader
+   Uses Discord's public invite JSON API to fetch the guild icon CDN URL,
+   then renders it as a .webp at 128px (2× the 52px display size) for
+   crisp rendering. Requests are staggered to avoid hitting rate limits.
+   Falls back silently to the text placeholder on any error.
+───────────────────────────────────────────────────────────────────────── */
+(function(){
+  var SERVERS=[
+    {code:'6GPnrnkc7x',id:'icon-redeemer'},
+    {code:'K35DDSnAap',id:'icon-brainrot'},
+    {code:'mgzV2Gmt5g',id:'icon-animeexp'},
+    {code:'VskVF8GGJf',id:'icon-dubai'},
+    {code:'x6qHgvayt8',id:'icon-apd'},
+    {code:'gBcvvAR52p',id:'icon-utd'},
+    {code:'bR9Q775yuY',id:'icon-eld'},
+    {code:'NYk6MTXRtz',id:'icon-bda'},
+    {code:'V4CXtSm3Jj',id:'icon-dev'},
+    {code:'vireth',    id:'icon-vireth'},
+  ];
+
+  function loadIcon(srv){
+    var el=document.getElementById(srv.id);
+    if(!el)return;
+    fetch('https://discord.com/api/v9/invites/'+srv.code+'?with_counts=false',{
+      headers:{'Accept':'application/json'}
+    })
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(d&&d.guild&&d.guild.icon){
+        var animated=d.guild.icon.startsWith('a_');
+        var fmt=animated?'gif':'webp';
+        var url='https://cdn.discordapp.com/icons/'+d.guild.id+'/'+d.guild.icon+'.'+fmt+'?size=128';
+        var img=new Image();
+        img.crossOrigin='anonymous';
+        img.onload=function(){
+          el.classList.remove('loading');
+          el.innerHTML='';
+          img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit';
+          el.appendChild(img);
+        };
+        img.onerror=function(){el.classList.remove('loading')};
+        img.src=url;img.alt=d.guild.name||'';
+      } else {
+        el.classList.remove('loading');
       }
-      resize();
-      addEventListener('resize', resize);
+    })
+    .catch(function(){el.classList.remove('loading')});
+  }
 
-      function spawnShooter(){
-        const fromLeft = Math.random() < 0.5;
-        let x = fromLeft ? -50*DPR : Math.random()*W;
-        let y = fromLeft ? Math.random()*H*0.3 : -50*DPR;
-        const speed = 6*DPR + Math.random()*4*DPR;
-        const ang = fromLeft ? (Math.PI/6 + Math.random()*Math.PI/12)
-                             : (Math.PI/3 + Math.random()*Math.PI/8);
-        shooters.push({
-          x, y,
-          vx: Math.cos(ang)*speed,
-          vy: Math.sin(ang)*speed,
-          life: 0,
-          max: 120 + Math.random()*60
-        });
-      }
+  SERVERS.forEach(function(srv,i){setTimeout(function(){loadIcon(srv)},i*200)});
+})();
 
-      let last=0;
-      function loop(t){
-        const dt = (t-last)||16; last=t;
-        ctx.clearRect(0,0,W,H);
-
-        for(const st of stars){
-          st.p += 0.002*dt;
-          const a = 0.6 + 0.4*Math.sin(st.p*st.s);
-          ctx.globalAlpha = a;
-          ctx.fillStyle = '#e5e7eb';
-          ctx.beginPath(); ctx.arc(st.x,st.y,st.r,0,Math.PI*2); ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-
-        if(Math.random() < 0.018) spawnShooter();
-
-        for(let i=shooters.length-1;i>=0;i--){
-          const s=shooters[i];
-          s.x += s.vx; s.y += s.vy; s.life++;
-          if(s.life>s.max || s.x>W+80*DPR || s.y>H+80*DPR){ shooters.splice(i,1); continue; }
-
-          const tx = s.x - s.vx*2.4;
-          const ty = s.y - s.vy*2.4;
-          const grad = ctx.createLinearGradient(s.x,s.y, tx,ty);
-          grad.addColorStop(0,'rgba(255,255,255,0.9)');
-          grad.addColorStop(1,'rgba(99,102,241,0.0)');
-          ctx.strokeStyle = grad; ctx.lineWidth = 2*DPR;
-          ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(tx,ty); ctx.stroke();
-
-          ctx.fillStyle='rgba(255,255,255,0.95)';
-          ctx.beginPath(); ctx.arc(s.x,s.y,1.9*DPR,0,Math.PI*2); ctx.fill();
-        }
-        requestAnimationFrame(loop);
-      }
-      requestAnimationFrame(loop);
-    })();
-
-    // HYPERSTAR 4D
-    (function(){
-      const canvas = document.getElementById('playground');
-      const ctx = canvas.getContext('2d');
-
-      function size(){
-        const r = canvas.getBoundingClientRect();
-        canvas.width  = Math.floor(r.width * DPR);
-        canvas.height = Math.floor(r.height * DPR);
-      }
-      size();
-      addEventListener('resize', size);
-
-      let W=canvas.width, H=canvas.height;
-      addEventListener('resize', ()=>{ W=canvas.width; H=canvas.height; });
-
-      const RAYS = 520;
-      const dirs = [];
-      for(let i=0;i<RAYS;i++){
-        let x=Math.random()*2-1, y=Math.random()*2-1, z=Math.random()*2-1, w=Math.random()*2-1;
-        const n=Math.hypot(x,y,z,w)||1; x/=n; y/=n; z/=n; w/=n;
-        dirs.push({v:[x,y,z,w], phase: Math.random()*Math.PI*2});
-      }
-
-      let axy = -0.2, azw = 0.9;
-      let vx=0, vz=0;
-      let dragging=false, lx=0, ly=0;
-      let pulse=0;
-
-      canvas.addEventListener('mousedown', (e)=>{ dragging=true; lx=e.clientX; ly=e.clientY; });
-      addEventListener('mousemove', (e)=>{ if(!dragging) return; const dx=e.clientX-lx, dy=e.clientY-ly; vx += dx*0.0007; vz += dy*0.0007; lx=e.clientX; ly=e.clientY; });
-      addEventListener('mouseup', ()=>{ dragging=false; });
-      canvas.addEventListener('touchstart', (e)=>{ const t=e.touches[0]; dragging=true; lx=t.clientX; ly=t.clientY; }, {passive:true});
-      addEventListener('touchmove', (e)=>{ const t=e.touches[0]; if(!t) return; const dx=t.clientX-lx, dy=t.clientY-ly; vx += dx*0.0007; vz += dy*0.0007; lx=t.clientX; ly=t.clientY; }, {passive:true});
-      addEventListener('touchend', ()=>{ dragging=false; });
-
-      function triggerPulse(str=1){ pulse = Math.min(pulse + str, 24); }
-      canvas.addEventListener('click', ()=>{ triggerPulse(8); });
-      addEventListener('keydown', (e)=>{ if(e.code==='Space'){ triggerPulse(6); }});
-
-      function rot4(v, axy, azw){
-        const c1=Math.cos(axy), s1=Math.sin(axy);
-        const c2=Math.cos(azw), s2=Math.sin(azw);
-        let x=v[0]*c1 - v[1]*s1; let y=v[0]*s1 + v[1]*c1;
-        let z=v[2]*c2 - v[3]*s2; let w=v[2]*s2 + v[3]*c2;
-        return [x,y,z,w];
-      }
-      function proj4to2([x,y,z,w]){
-        const d4 = 2.6;
-        const s4 = 1 / Math.max(0.2, (d4 - w));
-        x*=s4; y*=s4; z*=s4;
-        const d3 = 5.0; const f = 360; const zc = z + d3; const s3 = f/(zc*1.02);
-        return [x*s3, y*s3, zc, s4];
-      }
-
-      function draw(t){
-        ctx.clearRect(0,0,W,H);
-        ctx.save(); ctx.translate(W/2, H/2);
-
-        const g = ctx.createRadialGradient(0,0,10, 0,0, Math.min(W,H)/1.12);
-        g.addColorStop(0,'rgba(0,0,0,0)');
-        g.addColorStop(1,'rgba(0,0,0,0.38)');
-        ctx.fillStyle=g; ctx.fillRect(-W/2,-H/2,W,H);
-
-        axy += 0.0045 + vx; azw += 0.0035 + vz; vx *= 0.965; vz *= 0.965; pulse *= 0.92;
-
-        ctx.globalCompositeOperation='lighter';
-        const coreR = (140 + pulse*110) * DPR;
-        const core = ctx.createRadialGradient(0,0, 10*DPR, 0,0, coreR);
-        core.addColorStop(0,'rgba(147,197,253,0.7)');
-        core.addColorStop(1,'rgba(99,102,241,0.0)');
-        ctx.fillStyle=core; ctx.beginPath(); ctx.arc(0,0, coreR, 0, Math.PI*2); ctx.fill();
-
-        const paths=[];
-        for(const d of dirs){
-          const len = 1.2 + 0.34*Math.sin(t*0.002 + d.phase) + pulse*2.6;
-          const v4 = [d.v[0]*len, d.v[1]*len, d.v[2]*len, d.v[3]*len];
-          const r4 = rot4(v4, axy, azw);
-          const p = proj4to2(r4);
-          paths.push(p);
-        }
-        paths.sort((a,b)=> a[2]-b[2]);
-
-        for(const p of paths){
-          const [x,y,zc,s4] = p;
-          const hue = 220 + s4*140;
-          ctx.fillStyle = `hsla(${hue}, 95%, 72%, 0.95)`;
-          ctx.beginPath(); ctx.arc(x,y, 1.8*DPR + s4*3.0 + pulse*0.35, 0, Math.PI*2); ctx.fill();
-
-          const grad = ctx.createLinearGradient(0,0, x,y);
-          grad.addColorStop(0, 'hsla(260,90%,65%,0.0)');
-          grad.addColorStop(1, `hsla(${hue},95%,70%,${0.7 + Math.min(0.25, pulse*0.05)})`);
-          ctx.strokeStyle = grad; ctx.lineWidth = (1.4*DPR + s4*1.1) + pulse*0.45;
-          ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(x,y); ctx.stroke();
-        }
-
-        ctx.restore();
-      }
-
-      function loop(ts){ draw(ts); requestAnimationFrame(loop); }
-      requestAnimationFrame(loop);
-    })();
-  </script>
+/* particle mesh */
+(function(){
+  var wrap=document.getElementById('mesh-wrap'),canvas=document.getElementById('mesh-canvas');
+  if(!wrap||!canvas)return;
+  var ctx=canvas.getContext('2d'),W=0,H=0;
+  var mouse={x:-9999,y:-9999,on:false};
+  var N=65,LINK=115,REP_R=90,REP_F=2.0,nodes=[];
+  function init(){
+    var r=wrap.getBoundingClientRect();W=canvas.width=r.width;H=canvas.height=r.height;nodes=[];
+    for(var i=0;i<N;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,r:Math.random()*1.6+.7,hue:220+Math.floor(Math.random()*60),phase:Math.random()*Math.PI*2});
+  }
+  wrap.addEventListener('mousemove',function(e){var r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;mouse.on=true});
+  wrap.addEventListener('mouseleave',function(){mouse.on=false});
+  wrap.addEventListener('touchmove',function(e){e.preventDefault();var r=canvas.getBoundingClientRect();mouse.x=e.touches[0].clientX-r.left;mouse.y=e.touches[0].clientY-r.top;mouse.on=true},{passive:false});
+  wrap.addEventListener('touchend',function(){mouse.on=false});
+  wrap.addEventListener('click',function(e){var r=canvas.getBoundingClientRect();var mx=e.clientX-r.left,my=e.clientY-r.top;nodes.forEach(function(n){var dx=n.x-mx,dy=n.y-my,d=Math.hypot(dx,dy)||1;var f=Math.max(0,1-d/200)*5;n.vx+=dx/d*f;n.vy+=dy/d*f})});
+  window.addEventListener('resize',init);init();
+  var tick_t=0;
+  function tick(){
+    tick_t++;ctx.clearRect(0,0,W,H);var pulse=.5+.5*Math.sin(tick_t*.018);
+    nodes.forEach(function(n){
+      if(mouse.on){var dx=n.x-mouse.x,dy=n.y-mouse.y,d=Math.hypot(dx,dy);if(d<REP_R&&d>.5){var f=(REP_R-d)/REP_R*REP_F;n.vx+=dx/d*f;n.vy+=dy/d*f}}
+      n.vx*=.968;n.vy*=.968;var spd=Math.hypot(n.vx,n.vy);if(spd>3){n.vx=n.vx/spd*3;n.vy=n.vy/spd*3}
+      n.x+=n.vx;n.y+=n.vy;
+      if(n.x<0){n.x=0;n.vx=Math.abs(n.vx)*.5}if(n.x>W){n.x=W;n.vx=-Math.abs(n.vx)*.5}
+      if(n.y<0){n.y=0;n.vy=Math.abs(n.vy)*.5}if(n.y>H){n.y=H;n.vy=-Math.abs(n.vy)*.5}
+    });
+    for(var i=0;i<N;i++)for(var j=i+1;j<N;j++){
+      var a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<LINK){var t=1-d/LINK;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle='hsla('+(220+pulse*40)+',70%,65%,'+(t*.4)+')';ctx.lineWidth=t*1.1;ctx.stroke()}
+    }
+    nodes.forEach(function(n){
+      var spd=Math.hypot(n.vx,n.vy),ex=Math.min(1,spd/3),glow=.3+Math.sin(tick_t*.03+n.phase)*.12;
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r+ex*2,0,Math.PI*2);
+      ctx.fillStyle='hsla('+(n.hue+ex*30+pulse*20)+',80%,75%,'+(0.4+ex*.55+glow)+')';ctx.fill();
+    });
+    if(mouse.on){var g=ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,REP_R*1.2);g.addColorStop(0,'rgba(130,80,255,.08)');g.addColorStop(1,'rgba(130,80,255,0)');ctx.beginPath();ctx.arc(mouse.x,mouse.y,REP_R*1.2,0,Math.PI*2);ctx.fillStyle=g;ctx.fill()}
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
 </body>
 </html>
