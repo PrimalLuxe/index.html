@@ -1,0 +1,659 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDF Ray Marcher — WebGL 2</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; background:#000; overflow:hidden; }
+canvas { display:block; width:100%; height:100%; }
+#ui {
+  position:fixed; top:28px; left:28px; pointer-events:none; user-select:none;
+  font:400 11px/1.95 'Courier New',monospace; color:rgba(255,255,255,.45);
+  text-transform:uppercase; letter-spacing:.1em;
+}
+#ui h1 { font-size:13px; font-weight:400; color:rgba(255,255,255,.9); letter-spacing:.28em; margin-bottom:10px; }
+.chip {
+  display:inline-block; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05);
+  padding:2px 8px; margin:0 4px 4px 0; font-size:9px; border-radius:2px; letter-spacing:.12em;
+}
+#fps {
+  position:fixed; top:28px; right:122px; color:rgba(255,255,255,.25);
+  font:10px 'Courier New',monospace; pointer-events:none; letter-spacing:.1em;
+}
+#hint {
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+  color:rgba(255,255,255,.15); font:10px 'Courier New',monospace;
+  letter-spacing:.18em; text-transform:uppercase; white-space:nowrap; pointer-events:none;
+}
+#err {
+  display:none; position:fixed; inset:0; background:#000; color:#f55; padding:40px;
+  font:14px 'Courier New',monospace; align-items:center; justify-content:center;
+  text-align:center; flex-direction:column; gap:12px;
+}
+
+/* ── Panel Toggle ── */
+#panelToggle {
+  position:fixed; top:20px; right:28px; z-index:20;
+  background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.13);
+  color:rgba(255,255,255,.5); font:9px 'Courier New',monospace;
+  letter-spacing:.18em; text-transform:uppercase; padding:6px 11px;
+  border-radius:2px; cursor:pointer; transition:background .15s,color .15s,border-color .15s;
+}
+#panelToggle:hover { background:rgba(255,255,255,.11); color:rgba(255,255,255,.85); }
+#panelToggle.active { background:rgba(255,255,255,.10); color:#fff; border-color:rgba(255,255,255,.28); }
+
+/* ── Side Panel ── */
+#panel {
+  position:fixed; top:0; right:0; width:236px; height:100vh;
+  background:rgba(2,2,10,.90); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+  border-left:1px solid rgba(255,255,255,.065); z-index:15; overflow-y:auto; overflow-x:hidden;
+  padding:66px 17px 40px; transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.1) transparent;
+}
+#panel.open { transform:translateX(0); }
+#panel::-webkit-scrollbar { width:2px; }
+#panel::-webkit-scrollbar-thumb { background:rgba(255,255,255,.09); border-radius:1px; }
+
+.psec { margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid rgba(255,255,255,.05); }
+.psec:last-child { border-bottom:none; }
+.plbl {
+  font:8px/1 'Courier New',monospace; letter-spacing:.22em; color:rgba(255,255,255,.27);
+  text-transform:uppercase; margin-bottom:10px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.plbl b { color:rgba(255,255,255,.55); letter-spacing:.08em; font:10px 'Courier New',monospace; font-weight:400; }
+
+/* Presets */
+.presets { display:flex; flex-wrap:wrap; gap:5px; }
+.preset-btn {
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+  color:rgba(255,255,255,.38); font:7.5px 'Courier New',monospace;
+  letter-spacing:.14em; text-transform:uppercase; padding:5px 8px;
+  border-radius:2px; cursor:pointer; transition:all .13s;
+  display:flex; align-items:center; gap:5px;
+}
+.preset-btn:hover { background:rgba(255,255,255,.10); color:rgba(255,255,255,.8); border-color:rgba(255,255,255,.22); }
+.preset-btn.active { background:rgba(255,255,255,.10); color:#fff; border-color:rgba(255,255,255,.3); }
+.pdot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+/* Color rows */
+.crow { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font:9px 'Courier New',monospace; color:rgba(255,255,255,.38); letter-spacing:.1em; text-transform:uppercase; }
+.cswatch { width:38px; height:18px; border-radius:2px; border:1px solid rgba(255,255,255,.18); cursor:pointer; position:relative; overflow:hidden; flex-shrink:0; transition:transform .13s; }
+.cswatch:hover { transform:scale(1.07); }
+.cswatch input[type=color] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; border:none; padding:0; }
+
+/* Pills */
+.pills { display:flex; flex-wrap:wrap; gap:4px; }
+.pill {
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+  color:rgba(255,255,255,.36); font:8.5px 'Courier New',monospace;
+  padding:4px 0; width:24px; text-align:center; border-radius:2px;
+  cursor:pointer; transition:all .12s; letter-spacing:.03em;
+}
+.pill:hover { background:rgba(255,255,255,.09); color:rgba(255,255,255,.75); }
+.pill.active { background:rgba(255,255,255,.12); color:#fff; border-color:rgba(255,255,255,.28); }
+.qpill { width:40px; }
+
+/* Slider */
+.sldwrap { padding:4px 0 2px; }
+input[type=range].sld {
+  width:100%; -webkit-appearance:none; appearance:none; height:2px;
+  background:rgba(255,255,255,.14); border-radius:1px; outline:none; cursor:pointer; border:none;
+}
+input[type=range].sld::-webkit-slider-thumb {
+  -webkit-appearance:none; width:12px; height:12px; border-radius:50%;
+  background:rgba(255,255,255,.75); border:1px solid rgba(255,255,255,.3); cursor:pointer;
+}
+input[type=range].sld::-moz-range-thumb {
+  width:12px; height:12px; border-radius:50%;
+  background:rgba(255,255,255,.75); border:1px solid rgba(255,255,255,.3); cursor:pointer; border:none;
+}
+
+/* Pause btn */
+#pauseBtn {
+  display:block; width:100%; margin-top:9px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+  color:rgba(255,255,255,.42); font:8.5px 'Courier New',monospace;
+  letter-spacing:.18em; text-transform:uppercase; padding:8px;
+  border-radius:2px; cursor:pointer; transition:all .14s;
+}
+#pauseBtn:hover { background:rgba(255,255,255,.10); color:rgba(255,255,255,.8); }
+#pauseBtn.paused { border-color:rgba(255,180,60,.35); color:rgba(255,200,80,.7); }
+.qnote { margin-top:9px; font:7.5px 'Courier New',monospace; color:rgba(255,255,255,.18); letter-spacing:.1em; line-height:1.8; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="ui">
+  <h1>SDF RAY MARCHER</h1>
+  <div>
+    <span class="chip">WebGL 2</span><span class="chip">GLSL ES 3.0</span><span class="chip">Real-Time</span>
+  </div>
+  <div style="margin-top:9px;opacity:.6;">
+    Signed Distance Fields<br>Smooth Boolean Ops<br>Soft Shadow Rays<br>
+    Ambient Occlusion<br>Surface Reflections<br>ACES Tone Mapping
+  </div>
+</div>
+
+<div id="fps">-- FPS</div>
+<div id="hint">DRAG · ORBIT &nbsp;|&nbsp; SCROLL · ZOOM &nbsp;|&nbsp; SPACE · PAUSE</div>
+<div id="err"><div>WebGL 2.0 required</div><div style="font-size:11px;color:rgba(255,100,100,.6)">Please use a modern browser (Chrome 56+, Firefox 51+, Edge 79+)</div></div>
+
+<button id="panelToggle">CONTROLS</button>
+
+<div id="panel">
+  <div class="psec">
+    <div class="plbl">THEME PRESETS</div>
+    <div class="presets">
+      <button class="preset-btn active" data-theme="nebula"><span class="pdot" style="background:linear-gradient(135deg,#1961ff,#b80feb)"></span>NEBULA</button>
+      <button class="preset-btn" data-theme="sunset"><span class="pdot" style="background:linear-gradient(135deg,#ff4500,#ffaa00)"></span>SUNSET</button>
+      <button class="preset-btn" data-theme="ice"><span class="pdot" style="background:linear-gradient(135deg,#40ddff,#cef5ff)"></span>ICE</button>
+      <button class="preset-btn" data-theme="cyber"><span class="pdot" style="background:linear-gradient(135deg,#00ff65,#ccff00)"></span>CYBER</button>
+      <button class="preset-btn" data-theme="void"><span class="pdot" style="background:linear-gradient(135deg,#4d0080,#1a003a)"></span>VOID</button>
+      <button class="preset-btn" data-theme="lava"><span class="pdot" style="background:linear-gradient(135deg,#ff2200,#ff8800)"></span>LAVA</button>
+    </div>
+    <button id="randomBtn" style="margin-top:8px;display:block;width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.38);font:8px 'Courier New',monospace;letter-spacing:.18em;text-transform:uppercase;padding:6px;border-radius:2px;cursor:pointer;transition:all .13s;" onmouseover="this.style.background='rgba(255,255,255,.10)';this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.background='rgba(255,255,255,.04)';this.style.color='rgba(255,255,255,.38)'">⟳ RANDOMIZE COLORS</button>
+  </div>
+
+  <div class="psec">
+    <div class="plbl">TORUS COLORS</div>
+    <div class="crow">Color A<label class="cswatch" id="swatchA" style="background:#1961ff"><input type="color" id="colorA" value="#1961ff"></label></div>
+    <div class="crow">Color B<label class="cswatch" id="swatchB" style="background:#b80feb"><input type="color" id="colorB" value="#b80feb"></label></div>
+  </div>
+
+  <div class="psec">
+    <div class="plbl">CORE ORB</div>
+    <div class="crow">Glow Color<label class="cswatch" id="swatchOrb" style="background:#ffc747"><input type="color" id="colorOrb" value="#ffc747"></label></div>
+  </div>
+
+  <div class="psec">
+    <div class="plbl">TUMBLING BOXES</div>
+    <div class="crow">Color<label class="cswatch" id="swatchBox" style="background:#e55724"><input type="color" id="colorBox" value="#e55724"></label></div>
+  </div>
+
+  <div class="psec">
+    <div class="plbl">ORBIT SPHERES <b id="orbVal">6</b></div>
+    <div class="pills" id="orbPills"></div>
+  </div>
+
+  <div class="psec">
+    <div class="plbl">TUMBLE BOXES <b id="boxVal">4</b></div>
+    <div class="pills" id="boxPills"></div>
+  </div>
+
+  <div class="psec">
+    <div class="plbl">ANIM SPEED <b id="speedVal">1.0×</b></div>
+    <div class="sldwrap"><input type="range" class="sld" id="speed" min="0" max="300" value="100" step="5"></div>
+    <button id="pauseBtn">⏸ PAUSE</button>
+  </div>
+
+  <div class="psec">
+    <div class="plbl">RENDER QUALITY</div>
+    <div class="pills">
+      <button class="pill qpill" data-q="low">LOW</button>
+      <button class="pill qpill active" data-q="medium">MED</button>
+      <button class="pill qpill" data-q="high">HIGH</button>
+    </div>
+    <div class="qnote">LOW  — fast, reduced res<br>MED  — balanced (default)<br>HIGH — full quality</div>
+  </div>
+</div>
+
+<script>
+/* ─── WebGL init ─────────────────────────────────────────────────────────── */
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2');
+if (!gl) { document.getElementById('err').style.display='flex'; throw new Error('WebGL2 unavailable'); }
+
+/* ─── State ──────────────────────────────────────────────────────────────── */
+const QUALITY_PRESETS = {
+  low:    { scale:0.38, maxSteps:42, shadSteps:8,  aoSamples:0, reflSteps:0  },
+  medium: { scale:0.65, maxSteps:64, shadSteps:16, aoSamples:3, reflSteps:30 },
+  high:   { scale:1.00, maxSteps:90, shadSteps:28, aoSamples:5, reflSteps:55 },
+};
+const THEMES = {
+  nebula: { colorA:[0.10,0.38,1.00], colorB:[0.72,0.06,0.92], colorOrb:[1.00,0.78,0.28], colorBox:[0.90,0.34,0.14] },
+  sunset: { colorA:[1.00,0.27,0.05], colorB:[1.00,0.65,0.00], colorOrb:[1.00,0.92,0.28], colorBox:[0.72,0.08,0.18] },
+  ice:    { colorA:[0.22,0.88,1.00], colorB:[0.75,0.97,1.00], colorOrb:[0.38,0.76,1.00], colorBox:[0.05,0.44,0.72] },
+  cyber:  { colorA:[0.00,1.00,0.40], colorB:[0.80,1.00,0.00], colorOrb:[0.18,1.00,0.28], colorBox:[0.04,0.42,0.22] },
+  void:   { colorA:[0.30,0.00,0.55], colorB:[0.12,0.00,0.40], colorOrb:[0.78,0.02,0.16], colorBox:[0.10,0.06,0.14] },
+  lava:   { colorA:[1.00,0.13,0.00], colorB:[1.00,0.50,0.00], colorOrb:[1.00,0.95,0.20], colorBox:[0.60,0.02,0.02] },
+};
+const state = {
+  colorA:[0.10,0.38,1.00], colorB:[0.72,0.06,0.92],
+  colorOrb:[1.00,0.78,0.28], colorBox:[0.90,0.34,0.14],
+  orbCount:6, boxCount:4, speed:1.0, quality:'medium',
+  paused:false, pauseAt:0,
+};
+
+/* ─── Vertex Shader ──────────────────────────────────────────────────────── */
+const VS = `#version 300 es
+in vec2 aPos; out vec2 vUV;
+void main(){ vUV=aPos; gl_Position=vec4(aPos,0.0,1.0); }`;
+
+/* ─── Fragment Shader ────────────────────────────────────────────────────── */
+const FS = `#version 300 es
+precision highp float;
+in vec2 vUV; out vec4 outColor;
+uniform vec2  uRes;
+uniform float uTime;
+uniform vec2  uCam;
+uniform float uZoom;
+uniform vec3  uColorA;
+uniform vec3  uColorB;
+uniform vec3  uColorOrb;
+uniform vec3  uColorBox;
+uniform float uSpeed;
+uniform int   uOrbCount;
+uniform int   uBoxCount;
+uniform int   uMaxSteps;
+uniform int   uShadSteps;
+uniform int   uAOSamples;
+uniform int   uReflSteps;
+
+#define PI  3.14159265358979323846
+#define TAU 6.28318530717958647692
+#define FAR 55.0
+#define EPS 0.0006
+
+mat2 rot2(float a){ float c=cos(a),s=sin(a); return mat2(c,-s,s,c); }
+
+float sdSphere(vec3 p,float r){ return length(p)-r; }
+float sdTorus(vec3 p,float R,float r){ return length(vec2(length(p.xz)-R,p.y))-r; }
+float sdBox(vec3 p,vec3 b){ vec3 q=abs(p)-b; return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0); }
+float sdCylinder(vec3 p,float r,float h){ vec2 d=abs(vec2(length(p.xz),p.y))-vec2(r,h); return min(max(d.x,d.y),0.0)+length(max(d,0.0)); }
+vec2 opMin(vec2 a,vec2 b){ return a.x<b.x?a:b; }
+
+vec2 scene(vec3 p){
+  float T=uTime*uSpeed;
+  vec2 res=vec2(FAR,-1.0);
+  res=opMin(res,vec2(p.y+1.65,1.0));
+  vec3 tp=p;
+  tp.xz=rot2(T*0.52)*tp.xz;
+  tp.yz=rot2(T*0.19)*tp.yz;
+  res=opMin(res,vec2(sdTorus(tp,1.12,0.31),2.0));
+  float pulse=0.032*sin(T*5.1);
+  res=opMin(res,vec2(sdSphere(p,0.36+pulse),3.0));
+  for(int i=0;i<8;i++){
+    if(i>=uOrbCount) break;
+    float fi=float(i)/max(float(uOrbCount),1.0);
+    float ang=T*1.22+fi*TAU;
+    float rad=1.60+0.13*sin(T*0.62+fi*3.7);
+    vec3 sp=p-vec3(cos(ang)*rad,0.50*sin(T*0.85+fi*2.1),sin(ang)*rad);
+    float sz=0.148+0.018*sin(T*2.3+fi*4.6);
+    res=opMin(res,vec2(sdSphere(sp,sz),4.0+fi*0.09));
+  }
+  for(int i=0;i<6;i++){
+    if(i>=uBoxCount) break;
+    float fi=float(i)/max(float(uBoxCount),1.0);
+    float ang=-T*0.36+fi*TAU;
+    float rad=2.62+0.16*sin(T*0.43+fi*2.6);
+    vec3 bp=p-vec3(cos(ang)*rad,0.66*sin(T*0.35+fi*1.7),sin(ang)*rad);
+    bp.xy=rot2(T*0.52+fi*1.85)*bp.xy;
+    bp.xz=rot2(T*0.37+fi*1.25)*bp.xz;
+    res=opMin(res,vec2(sdBox(bp,vec3(0.185)),5.0));
+  }
+  res=opMin(res,vec2(sdCylinder(p+vec3(0.0,1.65,0.0),0.22,0.05),6.0));
+  return res;
+}
+
+vec3 calcNormal(vec3 p){
+  vec2 e=vec2(EPS,0.0);
+  return normalize(vec3(
+    scene(p+e.xyy).x-scene(p-e.xyy).x,
+    scene(p+e.yxy).x-scene(p-e.yxy).x,
+    scene(p+e.yyx).x-scene(p-e.yyx).x));
+}
+
+float softShadow(vec3 ro,vec3 rd,float mint,float maxt,float k){
+  float res=1.0,t=mint;
+  for(int i=0;i<28;i++){
+    if(i>=uShadSteps) break;
+    float h=scene(ro+rd*t).x;
+    if(h<0.001) return 0.0;
+    res=min(res,k*h/t);
+    t+=clamp(h,0.006,0.22);
+    if(t>=maxt) break;
+  }
+  return clamp(res,0.0,1.0);
+}
+
+float calcAO(vec3 p,vec3 n){
+  float occ=0.0,sc=1.0;
+  for(int i=0;i<5;i++){
+    if(i>=uAOSamples) break;
+    float h=0.01+0.14*float(i)/4.0;
+    occ+=(h-scene(p+n*h).x)*sc;
+    sc*=0.88;
+  }
+  return clamp(1.0-2.8*occ,0.0,1.0);
+}
+
+vec2 march(vec3 ro,vec3 rd,int maxS){
+  float t=0.001,mat=-1.0;
+  for(int i=0;i<100;i++){
+    if(i>=maxS) break;
+    vec2 h=scene(ro+rd*t);
+    if(h.x<EPS){mat=h.y;break;}
+    if(t>FAR) break;
+    t+=h.x;
+  }
+  return vec2(t,mat);
+}
+
+vec3 hsv2rgb(float h){
+  vec3 c=abs(mod(h*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0;
+  return clamp(c,0.0,1.0);
+}
+
+vec3 getColor(float mat,vec3 p){
+  if(mat<1.5){
+    float ch=mod(floor(p.x*0.9)+floor(p.z*0.9),2.0);
+    return mix(vec3(0.04,0.04,0.07),vec3(0.10,0.10,0.16),ch);
+  }
+  if(mat<2.5){
+    float ring=1.0-clamp(abs(length(p.xz)-1.12)*3.5,0.0,1.0);
+    float s=sin(atan(p.z,p.x)*8.0+uTime*uSpeed*1.1)*0.5+0.5;
+    return mix(uColorA,uColorB,s)*(0.85+ring*0.55);
+  }
+  if(mat<3.5) return uColorOrb;
+  if(mat<5.0) return hsv2rgb(fract(mat-4.0)*0.9+0.5)*0.88+0.08;
+  if(mat<5.5) return uColorBox;
+  return vec3(0.22,0.24,0.28);
+}
+
+vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }
+
+void main(){
+  vec2 st=(gl_FragCoord.xy*2.0-uRes)/uRes.y;
+  float theta=uCam.x*TAU+uTime*uSpeed*0.065;
+  float phi=clamp(uCam.y*PI*0.43+0.40,0.06,PI*0.46);
+  float cdist=5.1/uZoom;
+  vec3 ro=vec3(sin(theta)*cos(phi),sin(phi),cos(theta)*cos(phi))*cdist;
+  vec3 fw=normalize(-ro);
+  vec3 rt=normalize(cross(fw,vec3(0.0,1.0,0.0)));
+  vec3 up=cross(rt,fw);
+  vec3 rd=normalize(fw*1.42+rt*st.x+up*st.y);
+  vec3 lp=vec3(4.5,7.0,3.5), lp2=vec3(-3.0,2.0,-4.0);
+  vec2 hit=march(ro,rd,uMaxSteps);
+  float t=hit.x,mat=hit.y;
+  vec3 col=vec3(0.0);
+  if(mat>0.0){
+    vec3 pos=ro+rd*t;
+    vec3 nor=calcNormal(pos);
+    vec3 ld=normalize(lp-pos), ld2=normalize(lp2-pos);
+    float dif=clamp(dot(nor,ld),0.0,1.0);
+    float dif2=clamp(dot(nor,ld2),0.0,1.0)*0.35;
+    float spe=pow(clamp(dot(reflect(-ld,nor),-rd),0.0,1.0),56.0);
+    float sha=softShadow(pos+nor*0.005,ld,0.01,14.0,24.0);
+    float occ=calcAO(pos,nor);
+    float fre=pow(clamp(1.0-dot(nor,-rd),0.0,1.0),4.0);
+    vec3 base=getColor(mat,pos);
+    if(mat>2.5&&mat<3.5){
+      float g=3.0+0.4*sin(uTime*uSpeed*6.3);
+      col=base*g;
+    } else {
+      vec3 amb=base*0.09*occ;
+      vec3 dff=base*(dif*sha*vec3(1.0,0.93,0.82)+dif2*vec3(0.5,0.65,1.0));
+      vec3 spc=vec3(1.0)*spe*sha*0.6;
+      vec3 rim=vec3(0.2,0.5,1.0)*fre*0.45*occ;
+      col=amb+dff+spc+rim;
+      if(mat>1.5&&mat<2.5&&uReflSteps>0){
+        vec3 rdir=reflect(rd,nor);
+        vec2 rh=march(pos+nor*0.006,rdir,uReflSteps);
+        if(rh.y>0.0){
+          vec3 rpos=pos+rdir*rh.x;
+          vec3 rnor=calcNormal(rpos);
+          vec3 rld=normalize(lp-rpos);
+          float rdif=clamp(dot(rnor,rld),0.0,1.0);
+          float rsha=softShadow(rpos+rnor*0.005,rld,0.01,10.0,18.0);
+          col+=getColor(rh.y,rpos)*rdif*rsha*0.28;
+        }
+      }
+      if(mat>5.5) col=mix(col,col*1.4+vec3(spe*0.8),0.5);
+    }
+    float fog=1.0-exp(-t*0.037);
+    col=mix(col,vec3(0.01,0.01,0.038),fog);
+  } else {
+    float sky=max(dot(rd,normalize(lp)),0.0);
+    col=vec3(0.007,0.008,0.030)+pow(sky,8.0)*vec3(0.10,0.08,0.06);
+    vec3 sd=normalize(rd);
+    float lat=asin(clamp(sd.y,-1.0,1.0)), lon=atan(sd.z,sd.x);
+    vec2 sc=vec2(lon/TAU,lat/PI)*vec2(72.0,36.0);
+    vec2 sid=floor(sc);
+    float sv=fract(sin(dot(sid,vec2(127.1,311.7)))*43758.5453);
+    if(sv>0.973){
+      float tw=0.35+0.65*sin(uTime*uSpeed*1.7+sv*22.0);
+      col+=vec3(sv*sv*tw)*0.7;
+    }
+  }
+  {
+    vec3 oc=-ro; float b=dot(rd,oc);
+    float d2=max(dot(oc,oc)-b*b,0.0);
+    if(b>0.0){ float glow=exp(-d2*7.5)*0.22*exp(-t*0.06); col+=uColorOrb*glow; }
+  }
+  col=aces(col*1.28);
+  col=pow(max(col,0.0),vec3(1.0/2.2));
+  vec2 uvN=vUV*0.5+0.5;
+  float vig=uvN.x*uvN.y*(1.0-uvN.x)*(1.0-uvN.y);
+  col*=pow(clamp(vig*16.0,0.0,1.0),0.12);
+  col+=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-0.5)/255.0;
+  outColor=vec4(col,1.0);
+}`;
+
+/* ─── Compile + link ─────────────────────────────────────────────────────── */
+function compileShader(type,src){
+  const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ const l=gl.getShaderInfoLog(s); console.error(l); throw new Error(l); }
+  return s;
+}
+const prog=gl.createProgram();
+gl.attachShader(prog,compileShader(gl.VERTEX_SHADER,VS));
+gl.attachShader(prog,compileShader(gl.FRAGMENT_SHADER,FS));
+gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){ const l=gl.getProgramInfoLog(prog); throw new Error(l); }
+gl.useProgram(prog);
+
+/* ─── Geometry ───────────────────────────────────────────────────────────── */
+const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,-1,1,1,-1,1]),gl.STATIC_DRAW);
+const aPos=gl.getAttribLocation(prog,'aPos');
+gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+
+/* ─── Uniform locations ──────────────────────────────────────────────────── */
+const U = {
+  res:      gl.getUniformLocation(prog,'uRes'),
+  time:     gl.getUniformLocation(prog,'uTime'),
+  cam:      gl.getUniformLocation(prog,'uCam'),
+  zoom:     gl.getUniformLocation(prog,'uZoom'),
+  colorA:   gl.getUniformLocation(prog,'uColorA'),
+  colorB:   gl.getUniformLocation(prog,'uColorB'),
+  colorOrb: gl.getUniformLocation(prog,'uColorOrb'),
+  colorBox: gl.getUniformLocation(prog,'uColorBox'),
+  speed:    gl.getUniformLocation(prog,'uSpeed'),
+  orbCount: gl.getUniformLocation(prog,'uOrbCount'),
+  boxCount: gl.getUniformLocation(prog,'uBoxCount'),
+  maxSteps: gl.getUniformLocation(prog,'uMaxSteps'),
+  shadSteps:gl.getUniformLocation(prog,'uShadSteps'),
+  aoSamples:gl.getUniformLocation(prog,'uAOSamples'),
+  reflSteps:gl.getUniformLocation(prog,'uReflSteps'),
+};
+
+/* ─── Camera input ───────────────────────────────────────────────────────── */
+let camX=0,camY=0,zoom=1,drag=false,lx=0,ly=0;
+function onDown(x,y){ drag=true;lx=x;ly=y; }
+function onUp(){ drag=false; }
+function onMove(x,y){
+  if(!drag)return;
+  camX+=(x-lx)/window.innerWidth;
+  camY+=(y-ly)/window.innerHeight*0.72;
+  lx=x;ly=y;
+}
+canvas.addEventListener('mousedown',e=>onDown(e.clientX,e.clientY));
+window.addEventListener('mouseup',onUp);
+window.addEventListener('mousemove',e=>onMove(e.clientX,e.clientY));
+canvas.addEventListener('wheel',e=>{ zoom=Math.max(0.28,Math.min(3.8,zoom-e.deltaY*0.0012)); e.preventDefault(); },{passive:false});
+canvas.addEventListener('touchstart',e=>onDown(e.touches[0].clientX,e.touches[0].clientY),{passive:true});
+canvas.addEventListener('touchend',onUp,{passive:true});
+canvas.addEventListener('touchmove',e=>{ onMove(e.touches[0].clientX,e.touches[0].clientY); e.preventDefault(); },{passive:false});
+
+/* ─── Resize ─────────────────────────────────────────────────────────────── */
+function resize(){
+  const scale=QUALITY_PRESETS[state.quality].scale;
+  canvas.width=Math.floor(window.innerWidth*scale);
+  canvas.height=Math.floor(window.innerHeight*scale);
+  gl.viewport(0,0,canvas.width,canvas.height);
+}
+window.addEventListener('resize',resize);
+
+/* ─── Color helpers ──────────────────────────────────────────────────────── */
+function hex2v3(h){ return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255]; }
+function v3hex(v){ const f=x=>Math.round(Math.max(0,Math.min(1,x))*255).toString(16).padStart(2,'0'); return '#'+f(v[0])+f(v[1])+f(v[2]); }
+function randomColor(){
+  const h=Math.random(),s=0.75+Math.random()*0.25,v=0.65+Math.random()*0.35;
+  const i=Math.floor(h*6),f=h*6-i;
+  const p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
+  return [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i%6];
+}
+function syncInputs(){
+  [['A',state.colorA],['B',state.colorB],['Orb',state.colorOrb],['Box',state.colorBox]].forEach(([k,v])=>{
+    const hex=v3hex(v);
+    document.getElementById('color'+k).value=hex;
+    document.getElementById('swatch'+k).style.background=hex;
+  });
+}
+
+/* ─── Panel: theme presets ───────────────────────────────────────────────── */
+document.querySelectorAll('.preset-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const th=THEMES[btn.dataset.theme]; if(!th)return;
+    Object.assign(state,th); syncInputs();
+    document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+/* ─── Panel: color pickers ───────────────────────────────────────────────── */
+['A','B','Orb','Box'].forEach(k=>{
+  document.getElementById('color'+k).addEventListener('input',function(){
+    state['color'+k]=hex2v3(this.value);
+    document.getElementById('swatch'+k).style.background=this.value;
+    document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  });
+});
+
+/* ─── Panel: randomize ───────────────────────────────────────────────────── */
+document.getElementById('randomBtn').addEventListener('click',()=>{
+  state.colorA=randomColor(); state.colorB=randomColor();
+  state.colorOrb=randomColor(); state.colorBox=randomColor();
+  syncInputs();
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+});
+
+/* ─── Panel: orbit count pills ───────────────────────────────────────────── */
+const orbPillsEl=document.getElementById('orbPills');
+for(let i=1;i<=8;i++){
+  const p=document.createElement('button');
+  p.className='pill'+(i===state.orbCount?' active':'');
+  p.textContent=i;
+  p.addEventListener('click',()=>{
+    state.orbCount=i;
+    document.getElementById('orbVal').textContent=i;
+    orbPillsEl.querySelectorAll('.pill').forEach((x,j)=>x.classList.toggle('active',j+1===i));
+  });
+  orbPillsEl.appendChild(p);
+}
+
+/* ─── Panel: box count pills ─────────────────────────────────────────────── */
+const boxPillsEl=document.getElementById('boxPills');
+for(let i=0;i<=6;i++){
+  const p=document.createElement('button');
+  p.className='pill'+(i===state.boxCount?' active':'');
+  p.textContent=i;
+  p.addEventListener('click',()=>{
+    state.boxCount=i;
+    document.getElementById('boxVal').textContent=i;
+    boxPillsEl.querySelectorAll('.pill').forEach((x,j)=>x.classList.toggle('active',j===i));
+  });
+  boxPillsEl.appendChild(p);
+}
+
+/* ─── Panel: speed slider ────────────────────────────────────────────────── */
+const speedSlider=document.getElementById('speed');
+speedSlider.addEventListener('input',()=>{
+  state.speed=speedSlider.value/100;
+  document.getElementById('speedVal').textContent=state.speed.toFixed(1)+'×';
+});
+
+/* ─── Panel: pause ───────────────────────────────────────────────────────── */
+const pauseBtn=document.getElementById('pauseBtn');
+function togglePause(){
+  state.paused=!state.paused;
+  pauseBtn.textContent=state.paused?'▶ RESUME':'⏸ PAUSE';
+  pauseBtn.classList.toggle('paused',state.paused);
+}
+pauseBtn.addEventListener('click',togglePause);
+window.addEventListener('keydown',e=>{ if(e.code==='Space'&&e.target===document.body){e.preventDefault();togglePause();} });
+
+/* ─── Panel: quality pills ───────────────────────────────────────────────── */
+document.querySelectorAll('.qpill').forEach(p=>{
+  p.addEventListener('click',()=>{
+    state.quality=p.dataset.q;
+    document.querySelectorAll('.qpill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active'); resize();
+  });
+});
+
+/* ─── Panel toggle ───────────────────────────────────────────────────────── */
+const panelEl=document.getElementById('panel');
+const panelToggleEl=document.getElementById('panelToggle');
+panelToggleEl.addEventListener('click',()=>{
+  panelEl.classList.toggle('open');
+  panelToggleEl.classList.toggle('active');
+});
+
+/* ─── FPS counter ────────────────────────────────────────────────────────── */
+const fpsEl=document.getElementById('fps');
+let t0=null,frames=0,fpsStamp=0;
+
+/* ─── Init ───────────────────────────────────────────────────────────────── */
+resize();
+
+/* ─── Render loop ────────────────────────────────────────────────────────── */
+function frame(ts){
+  if(t0===null){t0=ts;fpsStamp=ts;}
+  let t;
+  if(state.paused){ t=state.pauseAt; }
+  else { t=(ts-t0)*0.001; state.pauseAt=t; }
+  frames++;
+  if(ts-fpsStamp>700){
+    fpsEl.textContent=(frames*1000/(ts-fpsStamp)).toFixed(1)+' FPS';
+    frames=0;fpsStamp=ts;
+  }
+  const q=QUALITY_PRESETS[state.quality];
+  gl.uniform2f(U.res,canvas.width,canvas.height);
+  gl.uniform1f(U.time,t);
+  gl.uniform2f(U.cam,camX,camY);
+  gl.uniform1f(U.zoom,zoom);
+  gl.uniform3fv(U.colorA,state.colorA);
+  gl.uniform3fv(U.colorB,state.colorB);
+  gl.uniform3fv(U.colorOrb,state.colorOrb);
+  gl.uniform3fv(U.colorBox,state.colorBox);
+  gl.uniform1f(U.speed,state.speed);
+  gl.uniform1i(U.orbCount,state.orbCount);
+  gl.uniform1i(U.boxCount,state.boxCount);
+  gl.uniform1i(U.maxSteps,q.maxSteps);
+  gl.uniform1i(U.shadSteps,q.shadSteps);
+  gl.uniform1i(U.aoSamples,q.aoSamples);
+  gl.uniform1i(U.reflSteps,q.reflSteps);
+  gl.drawArrays(gl.TRIANGLES,0,6);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
